@@ -638,11 +638,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 #  Embedded HTML
 # ─────────────────────────────────────────────────────────────────────────────
-HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.html")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def _load_html():
-    """Load the HTML template from the external file."""
-    with open(HTML_PATH, "r", encoding="utf-8") as f:
+def _load_file(filename: str) -> str:
+    path = os.path.join(BASE_DIR, filename)
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -653,10 +653,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
         pass  # suppress console noise
 
     def do_GET(self):
+        if self.path == "/" or self.path == "/book.html":
+            content = _load_file("book.html")
+        elif self.path == "/dashboard_ui":
+            content = _load_file("dashboard.html")
+        else:
+            self.send_response(404)
+            self.end_headers()
+            return
+
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
-        self.wfile.write(_load_html().encode())
+        self.wfile.write(content.encode())
 
     def do_POST(self):
         if urlparse(self.path).path != "/analyze":
@@ -683,7 +692,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 #  Entry point
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    PORT = 8080
+    PORT = int(os.environ.get("PORT", 8080))
     print("=" * 60)
     print("  NSE Econophysics Dashboard")
     print("=" * 60)
