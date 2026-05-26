@@ -14,6 +14,12 @@
 </p>
 
 <p align="center">
+  <a href="https://nse-econophysics.onrender.com/">
+    <img src="https://img.shields.io/badge/Live%20Demo-Available%20Here-success?style=for-the-badge&logo=render" alt="Live Demo">
+  </a>
+</p>
+
+<p align="center">
   <em>Does a stock's price behave like fully-developed turbulence in a fluid — or does it contain hidden structure planted by coordinated actors?</em>
 </p>
 
