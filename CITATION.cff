@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "NSE Econophysics Dashboard"
+type: software
+authors:
+  - family-names: "Sharma"
+    given-names: "Kiran"
+  - family-names: "Dutta"
+    given-names: "Srimonti"
+  - family-names: "Mukherjee"
+    given-names: "Sudip"
+version: "1.0.0"
+date-released: "2025-05-26"
+url: "https://github.com/Vivek-Shrivastav/NSE_Econophysics"
+license: MIT
+keywords:
+  - econophysics
+  - turbulence
+  - financial markets
+  - bispectrum
+  - phase coupling
+  - NSE
+  - Nifty 50
+  - power spectrum
+  - fat tails
+references:
+  - type: article
+    authors:
+      - family-names: "Sharma"
+        given-names: "K."
+      - family-names: "Dutta"
+        given-names: "S."
+      - family-names: "Mukherjee"
+        given-names: "S."
+    title: "Identification of Phase Correlations in Financial Stock Market Turbulence"
+    year: 2025
+    identifiers:
+      - type: other
+        value: "arXiv:2508.20105"
+  - type: book
+    authors:
+      - family-names: "Mantegna"
+        given-names: "Rosario N."
+      - family-names: "Stanley"
+        given-names: "H. Eugene"
+    title: "An Introduction to Econophysics: Correlations and Complexity in Finance"
+    year: 1999
+    publisher:
+      name: "Cambridge University Press"

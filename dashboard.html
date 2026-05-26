@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NSE Econophysics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #08111f;
+    --bg2:       #0d1b2e;
+    --bg3:       #112140;
+    --border:    #1e3a5f;
+    --amber:     #f59e0b;
+    --amber-dim: #78490a;
+    --teal:      #0ea5e9;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --text:      #e2eaf5;
+    --muted:     #6b8aad;
+    --card:      #0d1e35;
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ── Background grid ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(245,158,11,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,158,11,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ── Header ── */
+  header { text-align: center; padding: 3rem 0 2.5rem; }
+  header .badge {
+    display: inline-block; font-family: 'DM Mono', monospace; font-size: .7rem;
+    letter-spacing: .12em; text-transform: uppercase;
+    background: var(--amber-dim); color: var(--amber);
+    border: 1px solid var(--amber); border-radius: 4px;
+    padding: .2rem .7rem; margin-bottom: 1rem;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400; color: #fff; letter-spacing: -.02em;
+    line-height: 1.1;
+  }
+  header h1 em { color: var(--amber); font-style: italic; }
+  header p { margin-top: .75rem; color: var(--muted); font-size: .95rem; font-weight: 300; }
+
+  /* ── Control panel ── */
+  .panel {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem 2.5rem;
+    box-shadow: 0 4px 40px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+    margin-bottom: 2.5rem;
+  }
+
+  .fields { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1.25rem; }
+  @media(max-width: 800px){ .fields { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 500px){ .fields { grid-template-columns: 1fr; } }
+
+  .field label {
+    display: block; font-size: .75rem; font-weight: 500; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: .45rem;
+    font-family: 'DM Mono', monospace;
+  }
+  .field input, .field select {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: .9rem; padding: .65rem 1rem; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    appearance: none; -webkit-appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--amber); box-shadow: 0 0 0 3px rgba(245,158,11,.15);
+  }
+  .field input::placeholder { color: var(--muted); }
+  .field select option { background: var(--bg2); }
+
+  .btn-row { margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+
+  .btn-analyze {
+    background: var(--amber); color: #0a0a0a; border: none;
+    border-radius: 8px; padding: .75rem 2rem; font-size: 1rem;
+    font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: transform .15s, box-shadow .15s, background .15s;
+    letter-spacing: .02em; flex-shrink: 0;
+  }
+  .btn-analyze:hover { background: #fbbf24; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,158,11,.35); }
+  .btn-analyze:active { transform: translateY(0); }
+  .btn-analyze:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  .resolve-hint { font-size: .8rem; color: var(--teal); font-family: 'DM Mono', monospace; }
+
+  /* ── Loading ── */
+  #loading { display: none; text-align: center; padding: 3rem; }
+  .spinner {
+    width: 44px; height: 44px; margin: 0 auto 1rem;
+    border: 3px solid var(--border); border-top-color: var(--amber);
+    border-radius: 50%; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { color: var(--muted); font-size: .9rem; font-family: 'DM Mono', monospace; }
+
+  /* ── Error ── */
+  #error-box {
+    display: none; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.4);
+    border-radius: 10px; padding: 1rem 1.5rem; margin-bottom: 2rem;
+    color: #fca5a5; font-size: .9rem; font-family: 'DM Mono', monospace;
+  }
+
+  /* ── Summary cards ── */
+  #summary { display: none; margin-bottom: 2.5rem; }
+  .summary-header { margin-bottom: 1.25rem; }
+  .summary-header h2 {
+    font-family: 'DM Serif Display', serif; font-size: 1.8rem; font-weight: 400;
+    color: #fff;
+  }
+  .summary-header h2 span { color: var(--amber); }
+  .summary-header .meta { color: var(--muted); font-size: .82rem; font-family: 'DM Mono', monospace; margin-top: .3rem; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.25rem;
+    transition: border-color .2s;
+  }
+  .stat-card:hover { border-color: rgba(245,158,11,.4); }
+  .stat-card .label { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: .4rem; }
+  .stat-card .value { font-size: 1.4rem; font-weight: 600; color: #fff; font-family: 'DM Mono', monospace; line-height: 1.2; }
+  .stat-card .sub { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
+  .stat-card.good .value { color: var(--green); }
+  .stat-card.warn .value { color: var(--amber); }
+  .stat-card.bad  .value { color: var(--red);   }
+
+  /* ── Verdict banner ── */
+  .verdict-banner {
+    border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 2rem;
+    border: 1px solid;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .verdict-banner.green { background: rgba(34,197,94,.08); border-color: rgba(34,197,94,.3); color: #86efac; }
+  .verdict-banner.orange { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.3); color: #fde68a; }
+  .verdict-banner.red { background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.3); color: #fca5a5; }
+  .verdict-banner .icon { font-size: 1.8rem; flex-shrink: 0; }
+  .verdict-banner .vtext { font-size: .9rem; }
+  .verdict-banner .vtext strong { display: block; font-size: 1.05rem; margin-bottom: .2rem; }
+
+  /* ── Plots ── */
+  #plots { display: none; }
+  .section-title {
+    font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400;
+    color: var(--muted); margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .plots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  @media(max-width: 900px) { .plots-grid { grid-template-columns: 1fr; } }
+
+  .plot-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .plot-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+  .plot-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  .plot-card .plot-title {
+    padding: .8rem 1.2rem; border-bottom: 1px solid var(--border);
+    font-size: .78rem; font-weight: 500; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    background: var(--bg2);
+  }
+  .plot-card img { width: 100%; display: block; }
+
+  /* ── Footer ── */
+  footer { text-align: center; color: var(--muted); font-size: .78rem; margin-top: 4rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  footer a { color: var(--amber); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <div class="badge">NSE &nbsp;·&nbsp; Econophysics &nbsp;·&nbsp; Turbulence Analysis</div>
+    <h1>Market <em>Turbulence</em> Dashboard</h1>
+    <p>Phase correlations · FFT spectrum · Bispectrum · Fat-tail distribution</p>
+  </header>
+
+  <div class="panel">
+    <div class="fields">
+      <div class="field">
+        <label>Company Name or Symbol</label>
+        <input id="company" type="text" placeholder="e.g. Reliance, TCS, HDFC Bank…" value="cipla" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Start Date</label>
+        <input id="start" type="date" value="2020-01-01"/>
+      </div>
+      <div class="field">
+        <label>End Date</label>
+        <input id="end" type="date" value="2026-01-01"/>
+      </div>
+      <div class="field">
+        <label>Interval</label>
+        <select id="interval">
+          <option value="1d" selected>1 Day</option>
+          <option value="1wk">1 Week</option>
+          <option value="1mo">1 Month</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-analyze" id="btn" onclick="analyze()">▶ &nbsp;Run Analysis</button>
+      <span class="resolve-hint" id="hint"></span>
+    </div>
+  </div>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p id="loading-msg">Fetching NSE data…</p>
+  </div>
+  <div id="error-box"></div>
+
+  <div id="summary"></div>
+  <div id="plots"></div>
+
+  <footer>
+    Implements the framework from <strong>Sharma, Dutta &amp; Mukherjee (2025)</strong> —
+    <em>Identification of Phase Correlations in Financial Stock Market Turbulence</em> ·
+    Data via <a href="https://finance.yahoo.com" target="_blank">Yahoo Finance</a>
+  </footer>
+</div>
+
+<script>
+const loadingMessages = [
+  "Fetching NSE data from Yahoo Finance…",
+  "Downloading Nifty 50 reference…",
+  "Computing log-returns &amp; volatility…",
+  "Running FFT power spectrum…",
+  "Computing bispectrum (this takes a moment)…",
+  "Generating all plots…",
+];
+let msgIdx = 0, msgTimer = null;
+
+function cycleMsg() {
+  msgIdx = (msgIdx + 1) % loadingMessages.length;
+  document.getElementById("loading-msg").innerHTML = loadingMessages[msgIdx];
+}
+
+async function analyze() {
+  const company  = document.getElementById("company").value.trim();
+  const start    = document.getElementById("start").value;
+  const end      = document.getElementById("end").value;
+  const interval = document.getElementById("interval").value;
+
+  if (!company) { alert("Please enter a company name or symbol."); return; }
+  if (!start || !end) { alert("Please select a start and end date."); return; }
+
+  document.getElementById("btn").disabled = true;
+  document.getElementById("hint").textContent = "";
+  document.getElementById("error-box").style.display = "none";
+  document.getElementById("summary").style.display = "none";
+  document.getElementById("plots").style.display = "none";
+  document.getElementById("loading").style.display = "block";
+  msgIdx = 0;
+  document.getElementById("loading-msg").innerHTML = loadingMessages[0];
+  msgTimer = setInterval(cycleMsg, 2200);
+
+  try {
+    const resp = await fetch("/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ company, start, end, interval }),
+    });
+    const data = await resp.json();
+
+    clearInterval(msgTimer);
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("btn").disabled = false;
+
+    if (data.error) {
+      const eb = document.getElementById("error-box");
+      eb.textContent = "⚠  " + data.error;
+      eb.style.display = "block";
+      return;
+    }
+
+    renderSummary(data.summary);
+    renderPlots(data.plots);
+
+  } catch (e) {
+    clearInterval(msgTimer);
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("btn").disabled = false;
+    const eb = document.getElementById("error-box");
+    eb.textContent = "Network error: " + e.message;
+    eb.style.display = "block";
+  }
+}
+
+function renderSummary(s) {
+  const div = document.getElementById("summary");
+  const stock_up = s.stock_final >= 100;
+  const nifty_up = s.nifty_final >= 100;
+
+  // Verdict banner
+  let vcls = "green", vicon = "✅", vtitle = s.stock_verdict, vdesc = "";
+  if (s.stock_score > 6) { vcls = "red"; vicon = "⚠️"; }
+  else if (s.stock_score > 3) { vcls = "orange"; vicon = "⚡"; }
+  vdesc = s.stock_score < 3
+    ? "No significant phase coupling detected. Prices behave like fully-developed turbulence — consistent with market efficiency."
+    : s.stock_score < 6
+    ? "Weak phase coupling detected. Some frequency modes show mild correlation — borderline turbulent behaviour."
+    : "Strong phase coupling detected. Certain Fourier modes are correlated — this is a fingerprint of structured information injection.";
+
+  const perf = s.stock_final - 100;
+  const nperf = s.nifty_final - 100;
+  const relPerf = perf - nperf;
+
+  div.innerHTML = `
+    <div class="summary-header">
+      <h2>${s.long_name || s.symbol} <span>(${s.symbol}.NS)</span></h2>
+      <div class="meta">${s.resolve_msg} &nbsp;·&nbsp; ${s.period_start} → ${s.period_end} &nbsp;·&nbsp; ${s.points} trading days</div>
+    </div>
+
+    <div class="verdict-banner ${vcls}">
+      <div class="icon">${vicon}</div>
+      <div class="vtext">
+        <strong>${vtitle}</strong>
+        ${vdesc}
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card ${perf>=0?'good':'bad'}">
+        <div class="label">Price Performance</div>
+        <div class="value">${perf>=0?'+':''}${perf.toFixed(1)}%</div>
+        <div class="sub">${s.symbol} over period (base=100)</div>
+      </div>
+      <div class="stat-card ${nperf>=0?'good':'bad'}">
+        <div class="label">Nifty 50 Return</div>
+        <div class="value">${nperf>=0?'+':''}${nperf.toFixed(1)}%</div>
+        <div class="sub">Benchmark over same period</div>
+      </div>
+      <div class="stat-card ${relPerf>=0?'good':'bad'}">
+        <div class="label">Relative to Nifty</div>
+        <div class="value">${relPerf>=0?'+':''}${relPerf.toFixed(1)}%</div>
+        <div class="sub">Alpha over benchmark</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Annualised Volatility</div>
+        <div class="value">${s.stock_vol_pct}%</div>
+        <div class="sub">Nifty: ${s.nifty_vol_pct}%</div>
+      </div>
+      <div class="stat-card ${s.stock_kurt>3?'warn':''}">
+        <div class="label">Excess Kurtosis</div>
+        <div class="value">${s.stock_kurt}</div>
+        <div class="sub">${s.stock_kurt>3?'Fat tails ⚠':'Near-normal tails ✓'} (Nifty: ${s.nifty_kurt})</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Power-law Exponent α</div>
+        <div class="value">${s.stock_alpha}</div>
+        <div class="sub">Nifty: ${s.nifty_alpha} &nbsp;·&nbsp; Kolmogorov: 1.67</div>
+      </div>
+      <div class="stat-card ${s.stock_score<3?'good':s.stock_score<6?'warn':'bad'}">
+        <div class="label">Phase-Coupling Score</div>
+        <div class="value">${s.stock_score}</div>
+        <div class="sub">Nifty: ${s.nifty_score} &nbsp;·&nbsp; Threshold: 3.0 / 6.0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Data Points</div>
+        <div class="value">${s.points.toLocaleString()}</div>
+        <div class="sub">${s.period_start} → ${s.period_end}</div>
+      </div>
+    </div>
+  `;
+  div.style.display = "block";
+  div.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderPlots(plots) {
+  const div = document.getElementById("plots");
+  let html = `<div class="section-title">Analysis Charts</div><div class="plots-grid">`;
+  for (const p of plots) {
+    html += `<div class="plot-card">
+      <div class="plot-title">${p.title}</div>
+      <img src="${p.img}" alt="${p.title}" loading="lazy"/>
+    </div>`;
+  }
+  html += `</div>`;
+  div.innerHTML = html;
+  div.style.display = "block";
+}
+
+// Allow pressing Enter in company field
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("company").addEventListener("keydown", e => {
+    if (e.key === "Enter") analyze();
+  });
+});
+</script>
+</body>
+</html>

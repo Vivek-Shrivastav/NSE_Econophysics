@@ -1,0 +1,2726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Econophysics — Correlations & Complexity in Finance</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f9fc;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --bg4: #e2e8f0;
+  --border: rgba(15,23,42,0.12);
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #64748b;
+  --amber: #b45309;
+  --amber2: #92400e;
+  --teal: #0f766e;
+  --teal2: #0f766e;
+  --green: #047857;
+  --red: #be123c;
+  --purple: #6d28d9;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: Consolas, 'Courier New', monospace;
+  --sidebar-w: 260px;
+  --radius: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.6;overflow-x:hidden;}
+body{background:linear-gradient(180deg,#ffffff 0%,#f7f9fc 100%);}
+a{color:var(--teal);} 
+
+::-webkit-scrollbar{width:6px;background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
+
+/* ===== SIDEBAR ===== */
+#sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:#ffffff;border-right:1px solid var(--border);overflow-y:auto;z-index:100;display:flex;flex-direction:column;transition:transform 0.3s;box-shadow:2px 0 12px rgba(15,23,42,0.04);}
+.sidebar-header{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.sidebar-logo{font-family:var(--font-display);font-size:18px;color:var(--amber);line-height:1.2;}
+.sidebar-subtitle{font-size:11px;color:var(--text3);margin-top:4px;letter-spacing:0.05em;}
+.sidebar-search{margin:12px 12px 0;position:relative;}
+.sidebar-search input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12px;outline:none;font-family:var(--font-body);}
+.sidebar-search input::placeholder{color:var(--text3);}
+.sidebar-search::before{content:'';position:absolute;left:9px;top:7px;color:var(--text3);font-size:14px;}
+.sidebar-section{padding:8px 0;}
+.sidebar-section-title{padding:6px 16px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);font-weight:700;}
+.sidebar-item{display:flex;align-items:center;gap:8px;padding:7px 16px;cursor:pointer;border-radius:0;transition:background 0.15s;font-size:13px;color:var(--text2);}
+.sidebar-item:hover{background:var(--bg3);color:var(--text);}
+.sidebar-item.active{background:rgba(245,158,11,0.12);color:var(--amber);border-right:2px solid var(--amber);}
+.sidebar-item .item-num{font-size:10px;font-family:var(--font-mono);color:var(--text3);min-width:22px;}
+.sidebar-item .item-badge{margin-left:auto;font-size:9px;background:var(--amber);color:var(--bg);padding:1px 5px;border-radius:3px;font-weight:700;}
+.progress-bar{height:2px;background:var(--bg4);margin:4px 16px;}
+.progress-fill{height:100%;background:var(--amber);transition:width 0.5s;}
+
+/* ===== MAIN CONTENT ===== */
+#main{margin-left:var(--sidebar-w);min-height:100vh;}
+#canvas-bg{position:fixed;top:0;left:var(--sidebar-w);width:calc(100% - var(--sidebar-w));height:100%;pointer-events:none;z-index:0;opacity:0.06;}
+
+/* ===== SECTIONS ===== */
+.section{display:none;min-height:100vh;position:relative;z-index:1;}
+.section.active{display:block;}
+
+/* ===== LANDING ===== */
+#sec-landing{display:flex;align-items:center;justify-content:center;text-align:center;padding:60px 40px;}
+.landing-content{max-width:760px;}
+.landing-eyebrow{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin-bottom:20px;opacity:0;}
+.landing-title{font-family:var(--font-display);font-size:clamp(2.4rem,5vw,4rem);line-height:1.1;margin-bottom:16px;opacity:0;}
+.landing-title span{color:var(--amber);}
+.landing-sub{font-size:16px;color:var(--text2);max-width:560px;margin:0 auto 32px;opacity:0;}
+.landing-authors{font-size:12px;color:var(--text3);margin-bottom:40px;opacity:0;}
+.landing-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;opacity:0;}
+.btn{padding:10px 22px;border-radius:6px;border:none;cursor:pointer;font-family:var(--font-body);font-size:14px;font-weight:700;transition:all 0.2s;letter-spacing:0.02em;}
+.btn-primary{background:var(--amber);color:var(--bg);}
+.btn-primary:hover{background:var(--amber2);transform:translateY(-1px);}
+.btn-outline{background:transparent;color:var(--teal);border:1px solid var(--teal);}
+.btn-outline:hover{background:rgba(6,182,212,0.1);}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg4);}
+.landing-stats{display:flex;gap:40px;justify-content:center;margin-top:48px;opacity:0;}
+.stat-item{text-align:center;}
+.stat-num{font-family:var(--font-display);font-size:2rem;color:var(--amber);}
+.stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
+
+/* fade-in animation */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.fade-up-1{animation:fadeUp 0.7s 0.2s forwards;}
+.fade-up-2{animation:fadeUp 0.7s 0.4s forwards;}
+.fade-up-3{animation:fadeUp 0.7s 0.6s forwards;}
+.fade-up-4{animation:fadeUp 0.7s 0.7s forwards;}
+.fade-up-5{animation:fadeUp 0.7s 0.85s forwards;}
+.fade-up-6{animation:fadeUp 0.7s 1.0s forwards;}
+
+/* ===== CHAPTER LAYOUT ===== */
+.chapter-wrap{max-width:900px;margin:0 auto;padding:48px 40px;}
+.chapter-hero{margin-bottom:40px;}
+.chapter-tag{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);font-family:var(--font-mono);margin-bottom:12px;}
+.chapter-title{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);line-height:1.15;margin-bottom:16px;}
+.chapter-lead{font-size:17px;color:var(--text2);line-height:1.7;border-left:3px solid var(--amber);padding-left:16px;}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:0 1px 3px rgba(15,23,42,0.06);}
+.card-grid{display:grid;gap:16px;}
+.card-grid-2{grid-template-columns:1fr 1fr;}
+.card-grid-3{grid-template-columns:1fr 1fr 1fr;}
+.card h3{font-family:var(--font-display);font-size:1.1rem;margin-bottom:8px;color:var(--amber);}
+.card p{font-size:14px;color:var(--text2);line-height:1.6;}
+
+/* Info boxes */
+.info-box{border-radius:var(--radius);padding:16px 20px;margin:20px 0;font-size:14px;line-height:1.6;}
+.info-intuition{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);}
+.info-intuition::before{content:'Intuition: ';color:var(--amber);font-weight:700;}
+.info-analogy{background:rgba(6,182,212,0.07);border:1px solid rgba(6,182,212,0.2);}
+.info-analogy::before{content:'Analogy: ';color:var(--teal);font-weight:700;}
+.info-warning{background:rgba(244,63,94,0.07);border:1px solid rgba(244,63,94,0.2);}
+.info-warning::before{content:'Important: ';color:var(--red);font-weight:700;}
+.info-physics{background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);}
+.info-physics::before{content:'Physics connection: ';color:var(--purple);font-weight:700;}
+
+/* Math boxes */
+.math-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin:20px 0;font-family:var(--font-mono);font-size:13px;line-height:1.8;}
+.math-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--amber);margin-bottom:8px;font-family:var(--font-body);}
+.eq{color:var(--teal2);font-size:15px;}
+.eq-desc{color:var(--text2);font-size:12px;padding-left:16px;}
+
+/* Section headings */
+.section-h2{font-family:var(--font-display);font-size:1.6rem;margin:40px 0 16px;color:var(--text);}
+.section-h3{font-size:1rem;font-weight:700;margin:28px 0 10px;color:var(--amber);}
+p{margin-bottom:14px;color:var(--text2);font-size:14.5px;line-height:1.7;}
+
+/* Interactive panels */
+.viz-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin:24px 0;overflow:hidden;box-shadow:0 1px 4px rgba(15,23,42,0.06);}
+.viz-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.viz-title{font-weight:700;font-size:14px;}
+.viz-subtitle{font-size:12px;color:var(--text3);margin-left:auto;}
+.viz-body{padding:20px;}
+.viz-controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 20px;background:var(--bg3);border-top:1px solid var(--border);}
+.ctrl-group{display:flex;align-items:center;gap:8px;}
+.ctrl-label{font-size:12px;color:var(--text2);}
+.ctrl-val{font-family:var(--font-mono);font-size:12px;color:var(--amber);min-width:36px;}
+input[type=range]{-webkit-appearance:none;height:4px;background:var(--bg4);border-radius:2px;outline:none;cursor:pointer;width:100px;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--amber);cursor:pointer;}
+canvas{display:block;width:100%;border-radius:4px;}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:20px;background:var(--bg3);border-radius:6px;padding:3px;}
+.tab{padding:7px 16px;border-radius:4px;cursor:pointer;font-size:13px;color:var(--text2);transition:all 0.15s;}
+.tab.active{background:var(--bg2);color:var(--amber);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* Quiz */
+.quiz-q{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px;}
+.quiz-q p{font-size:15px;color:var(--text);margin-bottom:16px;font-weight:500;}
+.quiz-options{display:flex;flex-direction:column;gap:8px;}
+.quiz-opt{padding:10px 16px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:14px;color:var(--text2);background:var(--bg3);transition:all 0.15s;text-align:left;}
+.quiz-opt:hover{border-color:var(--amber);color:var(--text);}
+.quiz-opt.correct{background:rgba(16,185,129,0.12);border-color:var(--green);color:var(--green);}
+.quiz-opt.wrong{background:rgba(244,63,94,0.12);border-color:var(--red);color:var(--red);}
+.quiz-feedback{margin-top:12px;padding:10px 16px;border-radius:6px;font-size:14px;display:none;}
+.quiz-feedback.show{display:block;}
+.quiz-feedback.correct-fb{background:rgba(16,185,129,0.1);color:var(--green);}
+.quiz-feedback.wrong-fb{background:rgba(244,63,94,0.1);color:var(--red);}
+
+/* Glossary */
+.glossary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.glossary-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.glossary-term{font-weight:700;color:var(--amber);font-size:14px;margin-bottom:6px;}
+.glossary-def{font-size:13px;color:var(--text2);line-height:1.5;}
+.glossary-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.filter-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:12px;cursor:pointer;transition:all 0.15s;}
+.filter-btn.active{background:var(--amber);color:var(--bg);border-color:var(--amber);}
+
+/* Formula sheet */
+.formula-section{margin-bottom:32px;}
+.formula-section h3{font-family:var(--font-display);font-size:1.2rem;color:var(--amber);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.formula-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:8px;display:flex;gap:16px;align-items:flex-start;}
+.formula-name{font-size:13px;font-weight:700;color:var(--text);min-width:140px;}
+.formula-eq{font-family:var(--font-mono);font-size:14px;color:var(--teal2);flex:1;}
+.formula-note{font-size:12px;color:var(--text3);margin-top:4px;}
+
+/* Timeline */
+.timeline{position:relative;padding-left:24px;}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:1px;background:var(--border);}
+.timeline-item{position:relative;padding-bottom:28px;}
+.timeline-dot{position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--amber);}
+.timeline-year{font-family:var(--font-mono);font-size:11px;color:var(--amber);margin-bottom:4px;}
+.timeline-title{font-weight:700;font-size:14px;margin-bottom:6px;}
+.timeline-text{font-size:13px;color:var(--text2);line-height:1.5;}
+
+/* Progress dashboard */
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
+.dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.dash-num{font-family:var(--font-display);font-size:2rem;color:var(--amber);}
+.dash-label{font-size:12px;color:var(--text3);}
+.chapter-progress-list{display:flex;flex-direction:column;gap:6px;}
+.chap-progress-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;}
+.chap-prog-name{flex:1;font-size:13px;}
+.chap-prog-bar{width:80px;height:4px;background:var(--bg4);border-radius:2px;}
+.chap-prog-fill{height:100%;background:var(--amber);border-radius:2px;}
+.chap-prog-pct{font-size:11px;font-family:var(--font-mono);color:var(--text3);min-width:30px;text-align:right;}
+
+/* Mobile hamburger */
+#menu-toggle{display:none;position:fixed;top:14px;right:14px;z-index:200;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;cursor:pointer;color:var(--text);}
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  #main{margin-left:0;}
+  #canvas-bg{left:0;width:100%;}
+  .chapter-wrap{padding:24px 20px;}
+  .card-grid-2,.card-grid-3{grid-template-columns:1fr;}
+  #menu-toggle{display:block;}
+}
+
+/* Search results */
+#search-results{background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-top:4px;max-height:280px;overflow-y:auto;display:none;}
+.search-result{padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);}
+.search-result:hover{background:var(--bg3);}
+.search-result span{color:var(--text3);font-size:11px;display:block;}
+
+/* Spinning coin for St Petersburg */
+@keyframes spin{from{transform:rotateY(0);}to{transform:rotateY(360deg);}}
+.coin{display:inline-block;width:40px;height:40px;background:var(--amber);border-radius:50%;line-height:40px;text-align:center;font-size:20px;margin:4px;animation:spin 2s linear infinite;transform-style:preserve-3d;}
+
+/* Mode switcher */
+.mode-switcher{display:flex;gap:4px;background:var(--bg3);border-radius:6px;padding:3px;margin-bottom:24px;width:fit-content;}
+.mode-btn{padding:6px 16px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--text2);border:none;background:transparent;transition:all 0.15s;}
+.mode-btn.active{background:var(--bg);color:var(--amber);}
+
+/* Highlight in text */
+.hl{color:var(--amber);font-weight:700;}
+.hl-teal{color:var(--teal);}
+.hl-purple{color:var(--purple);}
+
+/* Dividers */
+hr.fancy{border:none;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:32px 0;}
+
+/* step list */
+.step-list{list-style:none;counter-reset:steps;}
+.step-list li{counter-increment:steps;padding:10px 0 10px 48px;position:relative;border-bottom:1px solid var(--border);font-size:14px;color:var(--text2);}
+.step-list li::before{content:counter(steps);position:absolute;left:0;top:8px;width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.15);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--font-mono);}
+
+/* Tooltip */
+.tooltip{position:relative;cursor:help;border-bottom:1px dashed var(--amber);}
+.tooltip::after{content:attr(data-tip);position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);font-size:12px;padding:6px 10px;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.2s;z-index:999;max-width:200px;white-space:normal;text-align:center;}
+.tooltip:hover::after{opacity:1;}
+
+/* Big equation display */
+.big-eq{font-family:var(--font-mono);font-size:20px;color:var(--teal2);text-align:center;padding:20px;background:var(--bg3);border-radius:var(--radius);margin:16px 0;}
+
+/* Chart labels */
+.chart-label{font-size:11px;font-family:var(--font-mono);color:var(--text3);}
+</style>
+</head>
+<body>
+
+<button id="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">Menu</button>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Econophysics</div>
+    <div class="sidebar-subtitle">Mantegna & Stanley — Interactive Edition</div>
+    <div class="sidebar-search">
+      <input type="text" id="searchInput" placeholder="Search concepts..." oninput="doSearch(this.value)">
+      <div id="search-results"></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Navigation</div>
+    <div class="sidebar-item active" onclick="showSection('landing')"><span class="item-num">H</span>Home</div>
+    <div class="sidebar-item" onclick="showSection('roadmap')"><span class="item-num">R</span>Learning Roadmap</div>
+    <div class="sidebar-item" onclick="showSection('timeline')"><span class="item-num">T</span>Historical Timeline</div>
+    <div class="sidebar-item" onclick="showSection('dashboard')"><span class="item-num">P</span>My Progress</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Core Chapters</div>
+    <div class="sidebar-item" onclick="showSection('ch1')"><span class="item-num">01</span>What is Econophysics?</div>
+    <div class="sidebar-item" onclick="showSection('ch2')"><span class="item-num">02</span>Efficient Markets & Arbitrage</div>
+    <div class="sidebar-item" onclick="showSection('ch3')"><span class="item-num">03</span>Random Walk & CLT<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch4')"><span class="item-num">04</span>Lévy Processes<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch5')"><span class="item-num">05</span>Scales in Financial Data</div>
+    <div class="sidebar-item" onclick="showSection('ch6')"><span class="item-num">06</span>Stationarity & Correlation<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch7')"><span class="item-num">07</span>Volatility & Memory<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch8')"><span class="item-num">08</span>Stochastic Price Models<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch9')"><span class="item-num">09</span>Scaling & Power Laws<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch10')"><span class="item-num">10</span>ARCH & GARCH<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch11')"><span class="item-num">11</span>Markets & Turbulence</div>
+    <div class="sidebar-item" onclick="showSection('ch12')"><span class="item-num">12</span>Correlations & Networks<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch13')"><span class="item-num">13</span>Portfolio Taxonomy</div>
+    <div class="sidebar-item" onclick="showSection('ch14')"><span class="item-num">14</span>Options & Black-Scholes<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('ch15')"><span class="item-num">15</span>Options in Real Markets</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Tools</div>
+    <div class="sidebar-item" onclick="showSection('simulator')"><span class="item-num">M</span>Market Simulator<span class="item-badge">INT</span></div>
+    <div class="sidebar-item" onclick="showSection('quiz')"><span class="item-num">Q</span>Quiz Center</div>
+    <div class="sidebar-item" onclick="showSection('glossary')"><span class="item-num">G</span>Glossary</div>
+    <div class="sidebar-item" onclick="showSection('formulas')"><span class="item-num">F</span>Formula Sheet</div>
+    <div class="sidebar-item" onclick="showSection('refs')"><span class="item-num">Ref</span>References</div>
+  </div>
+
+  <div style="padding:16px;margin-top:auto;border-top:1px solid var(--border);">
+    <div style="font-size:11px;color:var(--text3);">Based on Mantegna & Stanley (2004)</div>
+    <div style="margin-top:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px;">
+        <span>Overall Progress</span><span id="total-pct">0%</span>
+      </div>
+      <div class="progress-bar" style="margin:0;"><div class="progress-fill" id="total-progress" style="width:0%"></div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- BACKGROUND CANVAS -->
+<canvas id="canvas-bg"></canvas>
+
+<!-- MAIN -->
+<main id="main">
+
+<!-- ======= LANDING ======= -->
+<section id="sec-landing" class="section active">
+  <div class="landing-content">
+    <div class="landing-eyebrow fade-up-1">An Interactive Educational Experience</div>
+    <h1 class="landing-title fade-up-2">Econophysics<br><span>for the Curious Mind</span></h1>
+    <p class="landing-sub fade-up-3">Understanding financial markets through the laws of statistical physics — from random walks to Lévy flights, from volatility clustering to power-law tails.</p>
+    <p class="landing-authors fade-up-4">Based on <em>An Introduction to Econophysics</em> by <strong style="color:var(--text)">Rosario N. Mantegna</strong> &amp; <strong style="color:var(--text)">H. Eugene Stanley</strong></p>
+    <div class="landing-btns fade-up-5">
+      <button class="btn btn-primary" onclick="showSection('roadmap')">Start Learning →</button>
+      <button class="btn btn-outline" onclick="showSection('simulator')">Market Simulator</button>
+      <button class="btn btn-ghost" onclick="showSection('ch1')">Read Chapter 1</button>
+    </div>
+    <div class="landing-stats fade-up-6">
+      <div class="stat-item"><div class="stat-num">15</div><div class="stat-lbl">Chapters</div></div>
+      <div class="stat-item"><div class="stat-num">20+</div><div class="stat-lbl">Simulations</div></div>
+      <div class="stat-item"><div class="stat-num">50+</div><div class="stat-lbl">Concepts</div></div>
+      <div class="stat-item"><div class="stat-num">∞</div><div class="stat-lbl">Curiosity</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======= ROADMAP ======= -->
+<section id="sec-roadmap" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Your Learning Path</div>
+    <h1 class="chapter-title">Learning Roadmap</h1>
+    <p class="chapter-lead">Follow this sequence to build understanding from first principles. Each concept depends on the previous one — like constructing a pyramid from the ground up.</p>
+  </div>
+
+  <div class="mode-switcher">
+    <button class="mode-btn active" onclick="setMode('beginner',this)">Beginner</button>
+    <button class="mode-btn" onclick="setMode('intermediate',this)">Intermediate</button>
+    <button class="mode-btn" onclick="setMode('advanced',this)">Advanced</button>
+  </div>
+
+  <div style="display:grid;gap:12px;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0;overflow:hidden;">
+      <div style="background:rgba(245,158,11,0.1);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+        <span style="background:var(--amber);color:var(--bg);font-size:11px;font-weight:700;padding:2px 8px;border-radius:3px;">FOUNDATION</span>
+        <span style="font-weight:700;">Level 1 — Probability & Markets</span>
+      </div>
+      <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+        <div onclick="showSection('ch1')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--amber);font-family:var(--font-mono);">Ch 1</div>
+          <div style="font-weight:700;font-size:13px;">What is Econophysics?</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Background, history, pioneers</div>
+        </div>
+        <div onclick="showSection('ch2')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--amber);font-family:var(--font-mono);">Ch 2</div>
+          <div style="font-weight:700;font-size:13px;">Efficient Markets & Arbitrage</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">EMH, martingales, information</div>
+        </div>
+        <div onclick="showSection('ch5')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--amber)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--amber);font-family:var(--font-mono);">Ch 5</div>
+          <div style="font-weight:700;font-size:13px;">Scales in Financial Data</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Price vs log-price, time scales</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0;overflow:hidden;">
+      <div style="background:rgba(6,182,212,0.1);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+        <span style="background:var(--teal);color:var(--bg);font-size:11px;font-weight:700;padding:2px 8px;border-radius:3px;">CORE PHYSICS</span>
+        <span style="font-weight:700;">Level 2 — Stochastic Processes</span>
+      </div>
+      <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+        <div onclick="showSection('ch3')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--teal);font-family:var(--font-mono);">Ch 3</div>
+          <div style="font-weight:700;font-size:13px;">Random Walk & CLT</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Brownian motion, Gaussian</div>
+        </div>
+        <div onclick="showSection('ch4')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--teal);font-family:var(--font-mono);">Ch 4</div>
+          <div style="font-weight:700;font-size:13px;">Lévy Processes</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Fat tails, stable distributions</div>
+        </div>
+        <div onclick="showSection('ch6')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--teal);font-family:var(--font-mono);">Ch 6-7</div>
+          <div style="font-weight:700;font-size:13px;">Correlations & Memory</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">ACF, volatility clustering</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:0;overflow:hidden;">
+      <div style="background:rgba(167,139,250,0.1);padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;">
+        <span style="background:var(--purple);color:var(--bg);font-size:11px;font-weight:700;padding:2px 8px;border-radius:3px;">ADVANCED</span>
+        <span style="font-weight:700;">Level 3 — Models & Applications</span>
+      </div>
+      <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+        <div onclick="showSection('ch8')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--purple)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--purple);font-family:var(--font-mono);">Ch 8-9</div>
+          <div style="font-weight:700;font-size:13px;">Price Models & Scaling</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">TLF, power laws, crossover</div>
+        </div>
+        <div onclick="showSection('ch10')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--purple)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--purple);font-family:var(--font-mono);">Ch 10</div>
+          <div style="font-weight:700;font-size:13px;">ARCH & GARCH</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Volatility models, fat tails</div>
+        </div>
+        <div onclick="showSection('ch12')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--purple)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--purple);font-family:var(--font-mono);">Ch 12-13</div>
+          <div style="font-weight:700;font-size:13px;">Correlations & Taxonomy</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Networks, ultrametrics, trees</div>
+        </div>
+        <div onclick="showSection('ch14')" style="cursor:pointer;padding:12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border);transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--purple)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--purple);font-family:var(--font-mono);">Ch 14-15</div>
+          <div style="font-weight:700;font-size:13px;">Options & Black-Scholes</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px;">Derivatives pricing, hedging</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ======= CH1 ======= -->
+<section id="sec-ch1" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 1 — Introduction</div>
+    <h1 class="chapter-title">What is Econophysics?</h1>
+    <p class="chapter-lead">The marriage of statistical physics and financial markets — why physicists decided to study stock markets, and what they found that economists had missed.</p>
+  </div>
+
+  <div class="info-intuition">Imagine you're a physicist who has spent years studying turbulent fluids, critical phenomena, and scaling laws. One day you look at a stock market price chart and say: "Wait — this looks exactly like the patterns I study in physics." That's the birth of econophysics.</div>
+
+  <h2 class="section-h2">The Big Idea</h2>
+  <p>Financial markets are among the most complex systems in the world. Every second, millions of traders react to news, rumours, earnings reports, and each other's behaviour. The result is a time series of prices that looks, at first glance, completely random.</p>
+  <p>But physicists noticed something: the <span class="hl">statistical footprints</span> left by financial markets look remarkably similar to those found in other complex physical systems — turbulent fluids, magnetic systems near phase transitions, and biological networks.</p>
+
+  <div class="info-analogy">Just as a physicist can't track every molecule in a turbulent fluid but can still predict its large-scale statistical behaviour, an econophysicist can't predict tomorrow's stock price but can characterise the statistical laws governing price fluctuations over time.</div>
+
+  <h2 class="section-h2">Historical Pioneers</h2>
+  <div class="card-grid card-grid-2" style="margin:20px 0;">
+    <div class="card">
+      <h3>Vilfredo Pareto (1897)</h3>
+      <p>Italian economist who discovered that the distribution of wealth follows a <span class="hl">power law</span>: y ~ x<sup>-ν</sup>. He noticed this pattern held across England, Germany, Italy, and Peru. First power-law distribution in social sciences — and the first scale-free observation.</p>
+    </div>
+    <div class="card">
+      <h3>Louis Bachelier (1900)</h3>
+      <p>French mathematician who modelled stock price changes as a random walk in his thesis <em>Théorie de la spéculation</em>. His advisor was Poincaré. He discovered what Einstein would "rediscover" 5 years later — but for prices, not molecules.</p>
+    </div>
+    <div class="card">
+      <h3>Benoît Mandelbrot (1963)</h3>
+      <p>Proposed that cotton price changes follow a <span class="hl">Lévy stable distribution</span> — not Gaussian. This "most revolutionary development since Bachelier" implied infinite variance, fractal price paths, and fat tails that standard finance ignored.</p>
+    </div>
+    <div class="card">
+      <h3>Black & Scholes (1973)</h3>
+      <p>Published the option-pricing formula that became the cornerstone of modern finance, assuming geometric Brownian motion (Gaussian returns). This assumption, as we'll see, is an approximation that breaks down in the tails — exactly where it matters most.</p>
+    </div>
+  </div>
+
+  <div class="info-physics">Statistical physics has developed powerful tools over the past 50 years — scaling, universality, disordered systems, self-organized criticality. The central insight of econophysics is that these tools apply directly to financial markets, which are among the most complex and data-rich systems in existence.</div>
+
+  <h2 class="section-h2">Why It Matters</h2>
+  <p>The key contribution of physicists to finance is <span class="hl">emphasis on empirical data</span> and the <span class="hl">language of scaling</span>. Traditional finance often starts with assumptions (returns are normally distributed, markets are perfectly efficient) and builds elegant theories. Econophysics starts with data and asks: what do the statistics actually look like?</p>
+
+  <p>When you look carefully, real financial data shows:</p>
+  <div class="card-grid card-grid-3" style="margin:16px 0;">
+    <div class="card" style="border-color:rgba(244,63,94,0.3)">
+      <h3 style="color:var(--red)">Fat Tails</h3>
+      <p>Extreme events (crashes, rallies) happen much more often than a Gaussian model predicts. The 1987 crash was a ~22σ event — impossible under Gaussian assumptions, yet it happened.</p>
+    </div>
+    <div class="card" style="border-color:rgba(6,182,212,0.3)">
+      <h3 style="color:var(--teal)">Volatility Clustering</h3>
+      <p>Large price changes tend to be followed by large price changes (of either sign). Calm periods cluster together; turbulent periods cluster. This is not random — it has long-range memory.</p>
+    </div>
+    <div class="card" style="border-color:rgba(167,139,250,0.3)">
+      <h3 style="color:var(--purple)">Scaling Laws</h3>
+      <p>The distribution of price changes looks self-similar across different time scales — a fingerprint of scale-invariant processes, similar to critical phenomena in physics.</p>
+    </div>
+  </div>
+
+  <div class="info-warning">Econophysics is empirical, not normative. It describes what markets actually do, not what they should do according to theory. This makes it complementary — not opposed — to traditional finance.</div>
+
+  <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="showSection('ch2')">Next: Efficient Markets →</button>
+    <button class="btn btn-ghost" onclick="showSection('timeline')">View Historical Timeline</button>
+  </div>
+</div>
+</section>
+
+<!-- ======= CH2 ======= -->
+<section id="sec-ch2" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 2 — Efficient Market Hypothesis</div>
+    <h1 class="chapter-title">Efficient Markets & Arbitrage</h1>
+    <p class="chapter-lead">Why stock prices are so hard to predict — and the deep reason for this difficulty isn't lack of information, but an abundance of it.</p>
+  </div>
+
+  <div class="info-intuition">If a $100 bill were lying on the sidewalk, it wouldn't stay there long. Financial markets work the same way: any predictable pattern gets spotted, exploited, and eliminated. The result? Prices appear unpredictable — not because markets are meaningless, but because they're <em>too efficient</em> at incorporating information.</div>
+
+  <h2 class="section-h2">Arbitrage — The Market's Self-Correcting Force</h2>
+  <p>Arbitrage is the practice of profiting from price discrepancies. It sounds simple, but its systemic effects are profound: arbitrageurs, by exploiting inefficiencies, <span class="hl">eliminate those very inefficiencies</span>. Markets correct themselves through the profit motive.</p>
+
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Arbitrage in Action</span>
+      <span class="viz-subtitle">Interactive example from the book</span>
+    </div>
+    <div class="viz-body">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;">
+        <div style="background:var(--bg3);padding:16px;border-radius:8px;text-align:center;">
+          
+          <div style="font-weight:700;margin:8px 0;">Miami</div>
+          <div id="miami-price" style="font-family:var(--font-mono);font-size:22px;color:var(--green);">$0.50</div>
+          <div style="font-size:12px;color:var(--text3)">per kg oranges</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:var(--text3);">Exchange rate</div>
+          <div id="exchange-rate" style="font-family:var(--font-mono);color:var(--amber);">0.80 €/$</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:8px;">Transport: €0.10/kg</div>
+          <div id="arb-signal" style="margin-top:12px;padding:6px 12px;border-radius:4px;font-size:13px;font-weight:700;"></div>
+        </div>
+        <div style="background:var(--bg3);padding:16px;border-radius:8px;text-align:center;">
+          
+          <div style="font-weight:700;margin:8px 0;">Naples</div>
+          <div id="naples-price" style="font-family:var(--font-mono);font-size:22px;color:var(--red);">€0.60</div>
+          <div style="font-size:12px;color:var(--text3)">per kg oranges</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--bg3);border-radius:8px;font-size:13px;">
+        <div id="arb-calc" style="font-family:var(--font-mono);color:var(--teal2);line-height:1.8;"></div>
+      </div>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">Miami price $</span><input type="range" min="0.3" max="0.8" step="0.01" value="0.5" oninput="updateArbitrage(this.value,'miami')"><span class="ctrl-val" id="miami-val">0.50</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Naples price €</span><input type="range" min="0.3" max="0.9" step="0.01" value="0.6" oninput="updateArbitrage(this.value,'naples')"><span class="ctrl-val" id="naples-val">0.60</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">The Efficient Market Hypothesis (EMH)</h2>
+  <p>Formulated by <span class="hl">Fama (1965)</span> and given mathematical rigour by <span class="hl">Samuelson (1965)</span>, the EMH states: <em>all available information is instantly reflected in prices</em>.</p>
+
+  <div class="math-box">
+    <div class="math-label">Samuelson's Martingale Condition</div>
+    <div class="eq">E{ Y(t+1) | Y(0), Y(1), ..., Y(t) } = Y(t)</div>
+    <div class="eq-desc">// Expected tomorrow's price = today's price</div>
+    <div class="eq-desc">// The best forecast of the future is the present</div>
+    <div class="eq-desc">// Past prices carry NO useful information about future prices</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'emh-weak')">Weak Form</div>
+    <div class="tab" onclick="switchTab(this,'emh-semi')">Semi-Strong</div>
+    <div class="tab" onclick="switchTab(this,'emh-strong')">Strong Form</div>
+    <div class="tab" onclick="switchTab(this,'emh-reality')">Reality</div>
+  </div>
+  <div id="emh-weak" class="tab-content active card">
+    <h3>Weak Form EMH</h3>
+    <p>All <em>past price information</em> is already reflected in current prices. Technical analysis (using price charts to predict future prices) cannot consistently beat the market. Price changes are unpredictable from the history of price changes alone.</p>
+    <p>This is well-supported empirically: the autocorrelation of daily returns is essentially zero for most liquid markets.</p>
+  </div>
+  <div id="emh-semi" class="tab-content card">
+    <h3>Semi-Strong Form EMH</h3>
+    <p>All <em>publicly available information</em> (earnings, dividends, economic news) is instantly reflected. Fundamental analysis cannot consistently beat the market. Only private (insider) information could give an edge.</p>
+  </div>
+  <div id="emh-strong" class="tab-content card">
+    <h3>Strong Form EMH</h3>
+    <p>Even <em>private/insider information</em> is already reflected in prices. No one can consistently beat the market. This extreme version is generally considered false — insider trading does exist and can be profitable, which is why it's illegal.</p>
+  </div>
+  <div id="emh-reality" class="tab-content card" style="border-color:rgba(245,158,11,0.3)">
+    <h3>What Actually Happens</h3>
+    <p>In the 1980s, researchers discovered that earnings/price ratios, dividend yields, and term-structure variables could predict long-horizon returns — challenging the strict EMH. The 2013 Nobel Prize went to both Fama (EMH proponent) AND Shiller (behavioural finance critic of EMH) — reflecting genuine scientific uncertainty.</p>
+    <p>Econophysics perspective: markets are <span class="hl">approximately efficient</span>, not perfectly. Residual inefficiencies exist and get exploited. The speed of correction is finite. Statistical footprints of near-inefficiency are measurable.</p>
+  </div>
+
+  <h2 class="section-h2">Algorithmic Complexity — Why Prices Look Random</h2>
+  <div class="info-analogy">Consider transmitting π to 125,000 decimal places vs. 125,000 days of Dow Jones data. The number π can be described by a tiny algorithm. The Dow Jones time series cannot be compressed — it contains a huge amount of non-redundant economic information. Its apparent randomness is not emptiness — it's fullness.</div>
+
+  <div class="card" style="margin-top:20px;">
+    <h3>The Kolmogorov–Chaitin Insight</h3>
+    <p>A sequence is considered <em>random</em> (unpredictable) if the shortest program that can reproduce it is as long as the sequence itself. Financial time series behave this way — not because they contain no information, but because they contain so much <span class="hl">non-redundant economic information</span> that it cannot be compressed.</p>
+    <p>The efficient market hypothesis is equivalent to saying: the price-time series has maximum algorithmic complexity. You cannot extract a predictive subset because all information is already encoded in the current price.</p>
+  </div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch3')">Next: Random Walk →</button>
+</div>
+</section>
+
+<!-- ======= CH3 ======= -->
+<section id="sec-ch3" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 3 — Random Walk</div>
+    <h1 class="chapter-title">The Random Walk & Central Limit Theorem</h1>
+    <p class="chapter-lead">The mathematical foundation of modern finance — why stock prices behave like a drunkard's walk, and why that walk converges to a Gaussian in the long run.</p>
+  </div>
+
+  <div class="info-intuition">Imagine a drunk person standing at a lamppost. Each second, they take a random step left or right with equal probability. Where are they after N steps? They can't be predicted exactly — but we know that their <em>average distance</em> from the start grows as √N. This is the random walk, and it describes stock prices remarkably well.</div>
+
+  <h2 class="section-h2">The Mathematical Setup</h2>
+  <div class="math-box">
+    <div class="math-label">Random Walk (Discrete)</div>
+    <div class="eq">S_n = x₁ + x₂ + ... + xₙ</div>
+    <div class="eq-desc">// Where each xᵢ = ±s with equal probability</div>
+    <br>
+    <div class="eq">E{S_n} = 0</div>
+    <div class="eq-desc">// No drift — expected position is zero</div>
+    <br>
+    <div class="eq">E{S_n²} = n·s²</div>
+    <div class="eq-desc">// Variance grows LINEARLY with steps</div>
+    <br>
+    <div class="eq">σ(t) ~ √t</div>
+    <div class="eq-desc">// Standard deviation grows as square root of time</div>
+    <div class="eq-desc">// This is the DIFFUSION law — same as molecules in a fluid!</div>
+  </div>
+
+  <!-- RANDOM WALK SIMULATOR -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Random Walk Simulator</span>
+      <span class="viz-subtitle">Click Generate to create new paths</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="rw-canvas" height="260"></canvas>
+      <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+        <div style="font-size:12px;color:var(--text3);">Each coloured line = one independent random walk. Notice how they all spread out like √t.</div>
+      </div>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">Steps (N)</span><input type="range" min="50" max="500" step="10" value="200" id="rw-steps" oninput="document.getElementById('rw-steps-val').textContent=this.value;drawRW()"><span class="ctrl-val" id="rw-steps-val">200</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Paths</span><input type="range" min="1" max="20" step="1" value="8" id="rw-paths" oninput="document.getElementById('rw-paths-val').textContent=this.value;drawRW()"><span class="ctrl-val" id="rw-paths-val">8</span></div>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;" onclick="drawRW()">Regenerate</button>
+      <div style="margin-left:auto;font-size:12px;color:var(--text2);">σ(N) = <span id="rw-sigma" style="color:var(--amber);font-family:var(--font-mono);">—</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">The Central Limit Theorem</h2>
+  <p>This is perhaps the most important theorem in all of statistics — and it explains why so many things in nature follow a bell curve.</p>
+  <div class="info-analogy">No matter what shape distribution each individual step (xᵢ) follows — uniform, triangular, exponential — as long as the variance is FINITE, the sum of many such steps will always converge to a Gaussian (bell curve). The Gaussian is a universal attractor in the space of probability distributions.</div>
+
+  <div class="math-box">
+    <div class="math-label">Central Limit Theorem</div>
+    <div class="eq">S̃_n = (x₁+x₂+...+xₙ)/σₙ  →  PG(S̃) = (1/√2π)·exp(-S̃²/2)</div>
+    <div class="eq-desc">// As n → ∞, the SCALED sum converges to a standard Gaussian</div>
+    <div class="eq-desc">// Requirements: (1) independent xᵢ, (2) FINITE variance</div>
+    <div class="eq-desc">// When these fail → Lévy distributions take over (Chapter 4!)</div>
+  </div>
+
+  <!-- CLT SIMULATOR -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Central Limit Theorem — Watch it Happen</span>
+      <span class="viz-subtitle">Different input distributions all converge to Gaussian</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="clt-canvas" height="240"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Input distribution:</span>
+        <select id="clt-dist" onchange="drawCLT()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:12px;">
+          <option value="uniform">Uniform</option>
+          <option value="triangular">Triangular</option>
+          <option value="exponential">Exponential</option>
+          <option value="bimodal">Bimodal</option>
+        </select>
+      </div>
+      <div class="ctrl-group"><span class="ctrl-label">Sum n steps</span><input type="range" min="1" max="50" step="1" value="1" id="clt-n" oninput="document.getElementById('clt-n-val').textContent=this.value;drawCLT()"><span class="ctrl-val" id="clt-n-val">1</span></div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text2);">n=1 shows original dist; large n → Gaussian (blue curve)</div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Speed of Convergence — Berry-Esséen</h2>
+  <p>The Berry-Esséen theorem quantifies how quickly the CLT takes effect. It says the difference between the actual CDF and the Gaussian CDF is bounded by:</p>
+  <div class="math-box">
+    <div class="eq">|F_n(S) - Φ(S)| ≤ 3ρ / (σ³ · √n)</div>
+    <div class="eq-desc">// ρ = E{|xᵢ|³} — the third absolute moment</div>
+    <div class="eq-desc">// σ = standard deviation</div>
+    <div class="eq-desc">// Convergence speed ∝ 1/√n</div>
+    <div class="eq-desc">// Higher-skew distributions converge MORE SLOWLY</div>
+  </div>
+
+  <h2 class="section-h2">Basin of Attraction</h2>
+  <p>The Gaussian is an <span class="hl">attractor</span> in the space of probability distributions. Think of it like a funnel: many different starting distributions all flow toward the Gaussian as n increases. The set of all starting distributions that converge to Gaussian under summing is called the <em>basin of attraction</em> of the Gaussian.</p>
+  <div class="info-physics">This is analogous to a fixed-point attractor in dynamical systems, or a stable equilibrium in physics. The CLT tells us the Gaussian is the 'ground state' of probability distributions for processes with finite variance.</div>
+
+  <p>But what if the variance is <strong>infinite</strong>? Then the Gaussian is no longer the attractor. Enter Chapter 4...</p>
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch4')">Next: Lévy Processes →</button>
+</div>
+</section>
+
+<!-- ======= CH4 ======= -->
+<section id="sec-ch4" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 4 — Lévy Stochastic Processes</div>
+    <h1 class="chapter-title">Lévy Flights & Fat-Tailed Distributions</h1>
+    <p class="chapter-lead">What happens when the CLT fails? When individual steps can be arbitrarily large? Welcome to the world of Lévy stable distributions — the mathematics of extremes.</p>
+  </div>
+
+  <div class="info-intuition">Normal (Gaussian) processes are like a calm walk in a park — most steps are small, and extreme steps are astronomically rare. Lévy processes are like a random walk where <em>occasionally</em> you teleport across the continent. In markets, these teleportations are the crashes and bubbles that Gaussian models say should never happen — but do.</div>
+
+  <h2 class="section-h2">Stable Distributions</h2>
+  <p>A distribution is <span class="hl">stable</span> if the sum of n independent samples from it has the same functional form (just rescaled). Two examples we already know: Gaussian (α=2) and Lorentzian/Cauchy (α=1).</p>
+  <p>Lévy and Khintchine solved the general problem: the complete class of stable distributions is characterised by a single parameter α, called the <span class="hl tooltip" data-tip="Controls how fat the tails are. α=2: Gaussian (thin tails). α<2: Lévy (fat tails, infinite variance). α=1: Lorentzian/Cauchy.">stability index</span>.</p>
+
+  <div class="math-box">
+    <div class="math-label">Lévy-Stable Characteristic Function (symmetric, zero mean)</div>
+    <div class="eq">ln φ(q) = -γ|q|^α</div>
+    <div class="eq-desc">// α ∈ (0, 2]: stability index</div>
+    <div class="eq-desc">// γ > 0: scale factor</div>
+    <div class="eq-desc">// α = 2 → Gaussian</div>
+    <div class="eq-desc">// α = 1 → Lorentzian (Cauchy)</div>
+    <br>
+    <div class="math-label">Asymptotic Tail Behaviour (large |x|)</div>
+    <div class="eq">P_L(|x|) ~ |x|^{-(1+α)}</div>
+    <div class="eq-desc">// Power-law tail!</div>
+    <div class="eq-desc">// E{|x|^n} diverges for n ≥ α when α < 2</div>
+    <div class="eq-desc">// ALL Lévy processes with α < 2 have INFINITE VARIANCE</div>
+  </div>
+
+  <div class="info-warning">Infinite variance does NOT mean the distribution is ill-defined — it's perfectly valid mathematically. It means there's no characteristic scale for fluctuations. Just as a power-law distribution of earthquake magnitudes has no "typical" earthquake, a Lévy stable process has no "typical" price jump size.</div>
+
+  <!-- LEVY FLIGHT SIMULATOR -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Lévy Flight vs. Gaussian Walk</span>
+      <span class="viz-subtitle">Watch how Lévy flights make occasional giant leaps</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="levy-canvas" height="280"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">α (stability)</span><input type="range" min="0.5" max="2.0" step="0.05" value="1.5" id="levy-alpha" oninput="document.getElementById('levy-alpha-val').textContent=parseFloat(this.value).toFixed(2);drawLevy()"><span class="ctrl-val" id="levy-alpha-val">1.50</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Steps</span><input type="range" min="50" max="400" step="10" value="200" id="levy-steps" oninput="document.getElementById('levy-steps-val').textContent=this.value;drawLevy()"><span class="ctrl-val" id="levy-steps-val">200</span></div>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;" onclick="drawLevy()">New Walk</button>
+      <div style="margin-left:auto;font-size:12px;color:var(--text2);">α=2.0: Gaussian (no jumps) | α=1.0: Cauchy (huge jumps)</div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Scaling and Self-Similarity</h2>
+  <p>Lévy distributions are <span class="hl">self-similar</span>: when you scale the x-axis by n<sup>1/α</sup>, distributions at different time horizons collapse onto each other. This is the fingerprint of a fractal process.</p>
+
+  <div class="math-box">
+    <div class="math-label">Lévy Scaling (probability of return to origin)</div>
+    <div class="eq">P(S_n = 0) = Γ(1/α) / [πα(γn)^{1/α}]</div>
+    <div class="eq-desc">// For Gaussian (α=2): P(0) ~ 1/√n  (standard diffusion)</div>
+    <div class="eq-desc">// For Lévy (α<2): P(0) ~ n^{-1/α}  (anomalous diffusion)</div>
+    <div class="eq-desc">// The scaling exponent 1/α is the "fingerprint" of the process</div>
+  </div>
+
+  <h2 class="section-h2">The Power Law Basin of Attraction</h2>
+  <p>Just as the Gaussian is the attractor for finite-variance processes (CLT), Lévy stable distributions are attractors for distributions with <span class="hl">power-law tails</span>:</p>
+
+  <div class="math-box">
+    <div class="math-label">Generalised CLT: If each step has tail P(xᵢ) ~ |x|^{-(1+α)}</div>
+    <div class="eq">Then the sum Sₙ converges to a Lévy stable distribution of index α</div>
+    <div class="eq-desc">// As long as α ∈ (0,2), variance is infinite and Lévy is the attractor</div>
+    <div class="eq-desc">// α=2: transition point — variance becomes finite, Gaussian takes over</div>
+  </div>
+
+  <!-- POWER LAW VISUALIZER -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Power Law Tail Visualizer</span>
+      <span class="viz-subtitle">Compare Gaussian vs Lévy tail probabilities — log-log scale</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="pl-canvas" height="240"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">Lévy α</span><input type="range" min="0.5" max="2.0" step="0.05" value="1.5" id="pl-alpha" oninput="document.getElementById('pl-alpha-val').textContent=parseFloat(this.value).toFixed(2);drawPowerLaw()"><span class="ctrl-val" id="pl-alpha-val">1.50</span></div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text3);">Amber=Lévy (power law tail) | Teal=Gaussian (exponential tail)</div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">The St Petersburg Paradox</h2>
+  <p>This famous 18th-century paradox illustrates why infinite-variance distributions are counterintuitive:</p>
+  <div class="card" style="border-color:rgba(245,158,11,0.3);">
+    <h3>The Game</h3>
+    <p>Flip a coin repeatedly. Win 2<sup>n-1</sup> coins if n tails occur before the first head.</p>
+    <div style="font-family:var(--font-mono);font-size:12px;background:var(--bg3);padding:12px;border-radius:6px;margin:10px 0;">
+      n=1: win 1 coin, prob 1/2, expected 0.50<br>
+      n=2: win 2 coins, prob 1/4, expected 0.50<br>
+      n=3: win 4 coins, prob 1/8, expected 0.50<br>
+      ...<br>
+      Total expected win: 0.50 + 0.50 + 0.50 + ... = ∞
+    </div>
+    <p>How much should you pay to play? The "fair ante" is infinite — yet no rational person would pay even $30. Why? Because this is a <span class="hl">scale-free problem</span>. There is no characteristic payout. Power-law distributions are the modern resolution: the distribution of winnings follows a power law, and power-law distributions have no natural scale.</p>
+  </div>
+
+  <div class="info-physics">Lévy stable processes were crucial to Mandelbrot's 1963 analysis of cotton prices. He found α ≈ 1.7, meaning infinite variance. This challenged 60 years of financial theory that assumed finite variance. The debate wasn't fully resolved until large-scale empirical studies in the 1990s showed α ≈ 3 — outside the Lévy regime (finite variance), but still with fat tails.</div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch6')">Next: Correlations →</button>
+</div>
+</section>
+
+<!-- ======= CH5 ======= -->
+<section id="sec-ch5" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 5 — Scales in Financial Data</div>
+    <h1 class="chapter-title">Price Scales & Time Scales</h1>
+    <p class="chapter-lead">Before analysing financial data, we must choose what to measure and when. These choices have deep consequences for what we find.</p>
+  </div>
+
+  <div class="info-intuition">In physics, units are sacred — every measurement comes with a unit and uncertainty. In finance, the "units" themselves fluctuate: currencies change value, markets close at night, and the interval between transactions is random. This makes financial data analysis subtler than it first appears.</div>
+
+  <h2 class="section-h2">What Should We Measure?</h2>
+  <div class="card-grid card-grid-2" style="margin:20px 0;">
+    <div class="card">
+      <h3>Price Change Z(t)</h3>
+      <p>Z(t) = Y(t+Δt) - Y(t)</p>
+      <p style="color:var(--green)">Correct: No nonlinear transformation needed</p>
+      <p style="color:var(--red)">Limitation: Seriously affected by inflation and scale changes</p>
+    </div>
+    <div class="card" style="border-color:rgba(245,158,11,0.3)">
+      <h3>Log Return S(t) Most Common</h3>
+      <p>S(t) = ln Y(t+Δt) - ln Y(t)</p>
+      <p style="color:var(--green)">Correct: Naturally accounts for scale changes</p>
+      <p style="color:var(--green)">Correct: Additive over time</p>
+      <p style="color:var(--red)">Limitation: Mixes market dynamics with macroeconomic indicators</p>
+    </div>
+    <div class="card">
+      <h3>Return R(t)</h3>
+      <p>R(t) = [Y(t+Δt) - Y(t)] / Y(t)</p>
+      <p style="color:var(--green)">Correct: Direct percentage gain/loss</p>
+      <p style="color:var(--red)">Limitation: Sensitive to scale changes for long horizons</p>
+    </div>
+    <div class="card">
+      <h3>Deflated Change Z_D(t)</h3>
+      <p>Z_D(t) = [Y(t+Δt) - Y(t)] · D(t)</p>
+      <p style="color:var(--green)">Correct: Corrects for inflation</p>
+      <p style="color:var(--red)">Limitation: No unique choice of deflator D(t)</p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-label">Key Insight — High Frequency Approximation</div>
+    <div class="eq">For |ΔY|/Y << 1:  S(t) ≈ R(t) ≈ C₁·Z(t) ≈ Z_D(t)</div>
+    <div class="eq-desc">// At high frequency (seconds to minutes), all definitions agree!</div>
+    <div class="eq-desc">// For daily data over years, the choice matters significantly</div>
+    <div class="eq-desc">// Most empirical studies use S(t) — the log return</div>
+  </div>
+
+  <h2 class="section-h2">The Problem of Time Scales</h2>
+  <div class="card-grid card-grid-3" style="margin:16px 0;">
+    <div class="card">
+      <h3>Physical Time</h3>
+      <p>Seconds on the clock. Problem: markets close at night and weekends. What happens to prices when the market is closed?</p>
+      <p>Empirically: weekend variance ≈ 80% of weekday variance. Markets clearly "process" some information while closed.</p>
+    </div>
+    <div class="card" style="border-color:rgba(245,158,11,0.3)">
+      <h3>Trading Time</h3>
+      <p>Only counts hours when market is open. Most common choice in research. But problem: intraday volatility is NOT uniform — it's higher at open and close (the "U-shape").</p>
+    </div>
+    <div class="card">
+      <h3>Transaction Time</h3>
+      <p>Counts individual transactions. Eliminates non-uniform activity but requires tick-by-tick data. Removes one source of randomness (timing), but volume randomness remains.</p>
+    </div>
+  </div>
+
+  <div class="info-physics">The intraday U-shaped volatility pattern — high at open, lower at midday, high at close — is analogous to daily patterns in biological systems. It reflects the social organisation of human activity, not purely the information flow.</div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch6')">Next: Stationarity & Correlation →</button>
+</div>
+</section>
+
+<!-- ======= CH6 ======= -->
+<section id="sec-ch6" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 6–7 — Stationarity & Time Correlation</div>
+    <h1 class="chapter-title">Memory, Correlation, and Volatility Clustering</h1>
+    <p class="chapter-lead">Does the past predict the future in financial markets? The answer is subtle: prices are nearly uncorrelated, but their volatility has long-range memory stretching back weeks or months.</p>
+  </div>
+
+  <div class="info-intuition">Flip a coin: heads is +1, tails is -1. Each flip is completely independent of previous flips. Efficient market returns behave like this — uncorrelated. BUT imagine a biased coin whose bias changes slowly over time — sometimes usually heads, sometimes usually tails. The outcomes are still hard to predict, but their <em>variance</em> has memory. This is volatility clustering.</div>
+
+  <h2 class="section-h2">Autocorrelation Function (ACF)</h2>
+
+  <div class="math-box">
+    <div class="math-label">Autocorrelation Function R(τ)</div>
+    <div class="eq">R(τ) = E{ x(t)·x(t+τ) }  for zero-mean processes</div>
+    <div class="eq-desc">// R(0) = variance σ²</div>
+    <div class="eq-desc">// R(τ) → 0 as τ → ∞ for stationary processes</div>
+    <br>
+    <div class="math-label">Short-Range vs Long-Range Correlation</div>
+    <div class="eq">Short-range: ∫₀^∞ R(τ)dτ is FINITE (exponential decay)</div>
+    <div class="eq">Long-range:  R(τ) ~ τ^{η-1} with 0 < η ≤ 1  (power-law decay)</div>
+    <div class="eq-desc">// Long-range: integral DIVERGES — no typical time scale!</div>
+  </div>
+
+  <!-- ACF VISUALIZER -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">ACF Explorer — Returns vs |Returns|</span>
+      <span class="viz-subtitle">Compare autocorrelations of price changes and their absolute values</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="acf-canvas" height="260"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">Memory strength</span><input type="range" min="0" max="0.5" step="0.01" value="0.2" id="acf-mem" oninput="document.getElementById('acf-mem-val').textContent=parseFloat(this.value).toFixed(2);drawACF()"><span class="ctrl-val" id="acf-mem-val">0.20</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Series type:</span>
+        <select id="acf-type" onchange="drawACF()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:12px;">
+          <option value="both">Returns + |Returns|</option>
+          <option value="returns">Returns only</option>
+          <option value="abs">|Returns| only</option>
+        </select>
+      </div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text3);">Amber=returns (near zero) | Teal=|returns| (slow decay = volatility clustering)</div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">The Two Key Empirical Facts</h2>
+  <div class="card-grid card-grid-2" style="margin:20px 0;">
+    <div class="card" style="border-color:rgba(6,182,212,0.3)">
+      <h3 style="color:var(--teal)">Fact 1: Returns are uncorrelated</h3>
+      <p>The ACF of daily log-returns is essentially zero for lags beyond a few minutes. Price changes are nearly unpredictable from their history.</p>
+      <p>This supports the <span class="hl">Efficient Market Hypothesis</span>. For S&P 500, correlation time ≈ 4 minutes.</p>
+    </div>
+    <div class="card" style="border-color:rgba(245,158,11,0.3)">
+      <h3 style="color:var(--amber)">Fact 2: |Returns| are long-range correlated</h3>
+      <p>The ACF of |returns| or returns² decays as a <span class="hl">power law</span> with exponent γ ≈ 0.3. This means volatility has memory stretching back weeks or months.</p>
+      <p>This is <span class="hl">volatility clustering</span> — "turbulent" periods cluster together, as do calm periods.</p>
+    </div>
+  </div>
+
+  <div class="info-analogy">Think of the ocean. The direction of each wave crest is unpredictable (like return sign). But the <em>height</em> of waves comes in clusters — storms create many large waves in succession, then calm returns. The wave height (volatility) has memory even when wave direction (return sign) doesn't.</div>
+
+  <h2 class="section-h2">1/f Noise — Long-Range Correlations in Physics</h2>
+  <div class="math-box">
+    <div class="math-label">Power Spectrum of Long-Range Correlated Process</div>
+    <div class="eq">S(f) = const / |f|^η     with 0 < η < 2</div>
+    <div class="eq-desc">// η=0: white noise (uncorrelated, flat spectrum)</div>
+    <div class="eq-desc">// η=1: 1/f noise (long-range correlated)</div>
+    <div class="eq-desc">// η=2: Wiener process (random walk)</div>
+    <div class="eq-desc">// Volatility of S&P 500: η ≈ 0.7  (1/f^0.7 noise!)</div>
+  </div>
+
+  <div class="info-physics">1/f noise appears in transistors, traffic flow, musical rhythms, biological systems, and earthquake sequences. Its appearance in financial volatility suggests that markets share deep structural properties with these complex physical systems. This is not a coincidence — it's the signature of a complex system operating near a critical point.</div>
+
+  <h2 class="section-h2">Stationarity in Markets</h2>
+  <p>Strict stationarity requires that the statistical properties are constant over time. Financial data clearly violates this — volatility is time-varying. At best, we have <span class="hl">asymptotic stationarity</span>: as we average over very long periods, the statistics converge.</p>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch8')">Next: Stochastic Price Models →</button>
+</div>
+</section>
+
+<!-- ======= CH8 ======= -->
+<section id="sec-ch8" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapters 8–9 — Stochastic Models & Scaling</div>
+    <h1 class="chapter-title">Models of Price Dynamics & Scaling Breakdown</h1>
+    <p class="chapter-lead">Four competing models for how prices evolve — each capturing different aspects of reality. And the empirical finding that resolves the debate about infinite variance.</p>
+  </div>
+
+  <div class="info-intuition">The empirical facts we've seen — fat tails, volatility clustering, finite variance — seem contradictory. A fat-tailed distribution usually implies infinite variance (Lévy model). But we observe finite variance empirically. The resolution? The <em>Truncated Lévy Flight</em> — fat tails in the short run that converge to Gaussian in the long run.</div>
+
+  <h2 class="section-h2">The Four Models</h2>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(this,'m-levy')">1. Lévy Stable</div>
+    <div class="tab" onclick="switchTab(this,'m-student')">2. Student-t</div>
+    <div class="tab" onclick="switchTab(this,'m-gauss')">3. Gaussian Mix</div>
+    <div class="tab" onclick="switchTab(this,'m-tlf')">4. TLF</div>
+  </div>
+  <div id="m-levy" class="tab-content card">
+    <h3>Lévy Stable Model (Mandelbrot 1963)</h3>
+    <p><strong>Idea:</strong> Price changes follow a Lévy stable distribution with α < 2 (infinite variance).</p>
+    <p style="color:var(--green)">Correct: Explains fat tails naturally<br>Correct: Self-similar (fractal)<br>Correct: Basin of attraction (stable)</p>
+    <p style="color:var(--red)">Limitation: Infinite variance — inconsistent with risk measurement<br>Limitation: Discontinuous price paths<br>Limitation: Empirically, tails fall off faster than predicted for large |Z|</p>
+  </div>
+  <div id="m-student" class="tab-content card">
+    <h3>Student's t-Distribution</h3>
+    <p>P(z) = Cₙ / (1 + z²/n)^{(n+1)/2}</p>
+    <p>When n=1: Lorentzian. When n→∞: Gaussian. For finite n < ∞: moments of order k are finite only for k < n.</p>
+    <p style="color:var(--green)">Correct: Can have either finite or infinite variance (tune n)<br>Correct: Matches empirical distributions at given time horizons</p>
+    <p style="color:var(--red)">Limitation: Not stable — shape changes with time horizon<br>Limitation: No scaling relations across time horizons</p>
+  </div>
+  <div id="m-gauss" class="tab-content card">
+    <h3>Mixture of Gaussians (Clark 1973)</h3>
+    <p>Price changes are Gaussian <em>conditional on trading volume</em>. Since volume fluctuates, the unconditional distribution is leptokurtic (fat-tailed).</p>
+    <p style="color:var(--green)">Correct: Finite variance guaranteed<br>Correct: Economically motivated (volume drives prices)</p>
+    <p style="color:var(--red)">Limitation: No scaling relations<br>Limitation: Shape depends on unknown volume distribution</p>
+  </div>
+  <div id="m-tlf" class="tab-content card" style="border-color:rgba(245,158,11,0.3)">
+    <h3>Truncated Lévy Flight (Mantegna & Stanley 1994)</h3>
+    <p>A Lévy distribution cut off at some maximum jump size ℓ. The truncation preserves Lévy-like behaviour in the centre of the distribution but ensures finite variance.</p>
+    <div class="math-box" style="margin:12px 0;">
+      <div class="eq">P_TLF(x) = c·P_L(x)  for |x| ≤ ℓ, and 0 otherwise</div>
+      <div class="eq-desc">// c = normalising constant</div>
+      <div class="eq-desc">// Crossover: n× ≈ A·ℓ^α</div>
+      <div class="eq-desc">// For n << n×: Lévy regime (fat tails, non-Gaussian scaling)</div>
+      <div class="eq-desc">// For n >> n×: Gaussian regime (CLT takes over)</div>
+    </div>
+    <p style="color:var(--green)">Correct: Finite variance (by construction)<br>Correct: Lévy-like scaling for short time horizons<br>Correct: Converges to Gaussian for long horizons<br>Correct: Fits S&P 500 data with α=1.40</p>
+    <p style="color:var(--red)">Limitation: Artificially sharp cutoff (real version uses smooth exponential cutoff)<br>Limitation: Assumes i.i.d. increments — misses time-varying volatility</p>
+  </div>
+
+  <!-- TLF CROSSOVER VISUALIZER -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">TLF Crossover: Lévy → Gaussian</span>
+      <span class="viz-subtitle">Watch how a TLF evolves from Lévy to Gaussian as n increases</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="tlf-canvas" height="260"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">Lévy α</span><input type="range" min="0.8" max="1.9" step="0.05" value="1.4" id="tlf-alpha" oninput="document.getElementById('tlf-alpha-val').textContent=parseFloat(this.value).toFixed(2);drawTLF()"><span class="ctrl-val" id="tlf-alpha-val">1.40</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Sum n steps</span><input type="range" min="1" max="100" step="1" value="1" id="tlf-n" oninput="document.getElementById('tlf-n-val').textContent=this.value;drawTLF()"><span class="ctrl-val" id="tlf-n-val">1</span></div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text3);">n=1: Lévy-like. Large n: Gaussian (dotted blue curve)</div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Empirical Findings: S&P 500 Index</h2>
+  <p>Mantegna and Stanley (1995) analysed 6 years of S&P 500 data at 1-minute resolution (493,545 records). They found:</p>
+  <div class="card-grid card-grid-2" style="margin:16px 0;">
+    <div class="card">
+      <h3>Non-Gaussian Scaling</h3>
+      <p>The probability of return to the origin P(0) scales as a power law: P(0) ~ Δt<sup>-0.712</sup></p>
+      <p>This implies α = 1/0.712 = 1.40 — consistent with Lévy-like behaviour.</p>
+    </div>
+    <div class="card">
+      <h3>But Finite Variance</h3>
+      <p>For |Z| ≥ 6σ, the empirical tails fall BELOW the Lévy prediction. The distribution is truncated — variance is finite.</p>
+      <p>Scaling holds for 1 to ~10,000 trading minutes. Beyond that, Gaussian takes over.</p>
+    </div>
+  </div>
+
+  <h2 class="section-h2">The Power Law of Rare Events</h2>
+  <p>Gopikrishnan et al. (1999) studied 1,000 large US stocks over 2 years (40 million records). For large returns g = S/σ:</p>
+  <div class="big-eq">P(|g| > x) ~ x<sup>-α</sup>  with α ≈ 3</div>
+  <p>The exponent α ≈ 3 is called the <span class="hl">"Inverse Cubic Law"</span> — found in virtually every major market worldwide. Since α > 2, variance is finite (consistent with TLF). Since α < 4, kurtosis is infinite. This places real markets in a specific universality class.</p>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch10')">Next: ARCH & GARCH →</button>
+</div>
+</section>
+
+<!-- ======= CH10 ======= -->
+<section id="sec-ch10" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 10 — ARCH and GARCH</div>
+    <h1 class="chapter-title">ARCH & GARCH: Modelling Volatility Clustering</h1>
+    <p class="chapter-lead">The workhorse models of financial econometrics — designed precisely to capture the fact that market turbulence comes in clusters, not uniformly.</p>
+  </div>
+
+  <div class="info-intuition">Imagine the weather. Some days are volatile — lots of thunderstorms. Other days are calm. And importantly, stormy periods tend to be followed by more stormy periods. ARCH/GARCH models capture this same structure in financial markets: past volatility predicts future volatility, even when past returns don't predict future returns.</div>
+
+  <h2 class="section-h2">ARCH(p) — Autoregressive Conditional Heteroskedasticity</h2>
+  <p>Introduced by Engle (1982, Nobel Prize 2003). Key insight: model the <span class="hl">conditional variance</span> as a function of past squared returns.</p>
+
+  <div class="math-box">
+    <div class="math-label">ARCH(p) Model</div>
+    <div class="eq">x_t = σ_t · ε_t    where ε_t ~ iid N(0,1)</div>
+    <div class="eq-desc">// x_t: observed return at time t</div>
+    <div class="eq-desc">// ε_t: standardised innovation (white noise)</div>
+    <div class="eq-desc">// σ_t: time-varying volatility</div>
+    <br>
+    <div class="eq">σ_t² = α₀ + α₁x²_{t-1} + α₂x²_{t-2} + ... + αₚx²_{t-p}</div>
+    <div class="eq-desc">// Variance at time t depends on p past squared returns</div>
+    <div class="eq-desc">// α₀ > 0 (baseline variance)</div>
+    <div class="eq-desc">// αᵢ ≥ 0 (each past shock increases current variance)</div>
+    <div class="eq-desc">// Σαᵢ < 1 (stationarity condition)</div>
+  </div>
+
+  <h2 class="section-h2">GARCH(p,q) — Generalised ARCH</h2>
+  <p>Bollerslev (1986) generalised ARCH by also conditioning on past <em>variances</em>, not just past returns squared. This dramatically improves parsimony.</p>
+
+  <div class="math-box">
+    <div class="math-label">GARCH(p,q) Variance Equation</div>
+    <div class="eq">σ_t² = α₀ + Σᵢαᵢx²_{t-i} + Σⱼβⱼσ²_{t-j}</div>
+    <div class="eq-desc">// αᵢ: ARCH terms — current shock impact</div>
+    <div class="eq-desc">// βⱼ: GARCH terms — persistence of past variance</div>
+    <br>
+    <div class="math-label">GARCH(1,1) — The Most Widely Used Model</div>
+    <div class="eq">σ_t² = α₀ + α₁x²_{t-1} + β₁σ²_{t-1}</div>
+    <div class="eq-desc">// α₁ + β₁ = persistence (how long shocks last)</div>
+    <div class="eq-desc">// Typical values: α₁ ≈ 0.09, β₁ ≈ 0.90, persistence ≈ 0.99</div>
+    <div class="eq-desc">// Near-unit persistence → shocks decay very slowly (weeks!)</div>
+  </div>
+
+  <!-- GARCH SIMULATOR -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">GARCH(1,1) Simulator</span>
+      <span class="viz-subtitle">See how volatility clusters emerge from the model</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="garch-canvas" height="300"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">α₁ (shock impact)</span><input type="range" min="0.01" max="0.4" step="0.01" value="0.09" id="garch-a1" oninput="document.getElementById('garch-a1-val').textContent=parseFloat(this.value).toFixed(2);drawGARCH()"><span class="ctrl-val" id="garch-a1-val">0.09</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">β₁ (persistence)</span><input type="range" min="0.4" max="0.98" step="0.01" value="0.90" id="garch-b1" oninput="document.getElementById('garch-b1-val').textContent=parseFloat(this.value).toFixed(2);drawGARCH()"><span class="ctrl-val" id="garch-b1-val">0.90</span></div>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px;" onclick="drawGARCH()">New Series</button>
+      <div style="margin-left:auto;font-size:12px;color:var(--text2);">Persistence α+β = <span id="garch-persist" style="color:var(--amber);font-family:var(--font-mono);">0.99</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Statistical Properties of ARCH/GARCH</h2>
+  <div class="card-grid card-grid-2" style="margin:16px 0;">
+    <div class="card">
+      <h3>Fat Tails Emerge Naturally</h3>
+      <p>Even with Gaussian innovations ε_t, the unconditional distribution of x_t under GARCH has <span class="hl">fatter tails than Gaussian</span>. The time-varying variance "mixes" Gaussians of different widths, creating a leptokurtic distribution.</p>
+      <p>The tail index of the unconditional GARCH distribution depends on the persistence α+β.</p>
+    </div>
+    <div class="card">
+      <h3>Volatility Autocorrelation</h3>
+      <p>GARCH(1,1) produces exactly the volatility clustering observed in data: ACF(x_t²) decays as a <span class="hl">geometric series</span> with rate β₁.</p>
+      <p>For empirical data, the ACF of |returns| decays as a power law — slightly slower than GARCH predicts. This suggests fractionally integrated GARCH (FIGARCH) may be more accurate.</p>
+    </div>
+  </div>
+
+  <div class="math-box">
+    <div class="math-label">GARCH Asymptotic PDF — Tail Behaviour</div>
+    <div class="eq">P(|x| > z) ~ z^{-κ}</div>
+    <div class="eq-desc">// κ determined by: E{(α₁ε²+β₁)^{κ/2}} = 1</div>
+    <div class="eq-desc">// For typical values: κ ≈ 4 to 6</div>
+    <div class="eq-desc">// This is WITHIN the finite-variance regime (κ > 2)</div>
+    <div class="eq-desc">// But heavier tails than Gaussian</div>
+  </div>
+
+  <div class="info-physics">GARCH is mathematically equivalent to a specific type of self-similar stochastic process. The connection to physics: the ARCH model can be derived from a multiplicative noise process, similar to models of fragmentation and turbulence cascades. The persistence β₁ ≈ 0.9 is analogous to a physical system operating near (but not at) criticality.</div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch11')">Next: Turbulence Analogy →</button>
+</div>
+</section>
+
+<!-- ======= CH11 ======= -->
+<section id="sec-ch11" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapter 11 — Financial Markets and Turbulence</div>
+    <h1 class="chapter-title">Markets as Turbulent Fluids</h1>
+    <p class="chapter-lead">One of the most beautiful analogies in all of science: the statistical properties of turbulent fluid velocity fluctuations and financial price fluctuations are strikingly similar.</p>
+  </div>
+
+  <div class="info-analogy">A turbulent river and a stock market have something profound in common: both exhibit large fluctuations, long-range correlations, and fat-tailed distributions that can't be explained by simple Gaussian models. This isn't metaphor — the mathematical fingerprints are quantitatively similar.</div>
+
+  <h2 class="section-h2">The Kolmogorov Turbulence Framework</h2>
+  <p>In turbulence, energy cascades from large scales to small scales through a hierarchy of eddies. The velocity difference between two nearby points v(x+r) - v(x) has been studied extensively. Key findings:</p>
+
+  <div class="math-box">
+    <div class="math-label">Kolmogorov Scaling (K41)</div>
+    <div class="eq">〈|v(x+r) - v(x)|^q〉 ~ r^{ζ(q)}</div>
+    <div class="eq-desc">// q: order of moment</div>
+    <div class="eq-desc">// ζ(q): scaling exponents (simple prediction: ζ(q) = q/3)</div>
+    <div class="eq-desc">// Intermittency corrections: ζ(q) is NOT linear in q for q > 3</div>
+    <br>
+    <div class="math-label">Financial Analogy: Price Change Moments</div>
+    <div class="eq">〈|S(t, Δt)|^q〉 ~ Δt^{ξ(q)}</div>
+    <div class="eq-desc">// Replace velocity difference with price change</div>
+    <div class="eq-desc">// Replace spatial separation r with time lag Δt</div>
+    <div class="eq-desc">// Multiscaling of moments = multifractality</div>
+  </div>
+
+  <div class="card-grid card-grid-2" style="margin:20px 0;">
+    <div class="card">
+      <h3>Turbulence</h3>
+      <p><strong>Velocity PDF:</strong> Fat-tailed, non-Gaussian at small scales. Approaches Gaussian at large scales.</p>
+      <p><strong>Intermittency:</strong> Bursts of high activity (eddies) alternating with quiet regions.</p>
+      <p><strong>Cascade:</strong> Energy flows from large to small scales.</p>
+      <p><strong>Multifractal spectrum:</strong> Scaling exponents ζ(q) are non-linear in q.</p>
+    </div>
+    <div class="card" style="border-color:rgba(245,158,11,0.3)">
+      <h3>Financial Markets</h3>
+      <p><strong>Return PDF:</strong> Fat-tailed, non-Gaussian at short time scales. Approaches Gaussian at long time scales.</p>
+      <p><strong>Volatility clustering:</strong> Bursts of high volatility alternating with quiet periods.</p>
+      <p><strong>Cascade:</strong> Information flows across time scales? (debated)</p>
+      <p><strong>Multifractal spectrum:</strong> Scaling exponents ξ(q) are non-linear in q.</p>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Quantitative Comparison</h2>
+  <div class="card" style="margin:20px 0;">
+    <h3>Parallel Analysis (Ghashghaie et al. 1996)</h3>
+    <p>A direct comparison of S&P 500 index data and fully-developed turbulence data showed striking visual and quantitative similarity in the PDF shapes across different time/scale lags.</p>
+    <p>This goes beyond analogy: both systems show <span class="hl">non-Gaussian intermittency</span> that evolves as a function of scale in a quantitatively similar way.</p>
+    <p>However, the <em>mechanisms</em> are different. In turbulence, there's a physical energy cascade from large to small eddies. In markets, the "cascade" (if it exists) is likely information-based — news at long time scales propagating to short time scales. The analogy is statistical, not mechanistic.</p>
+  </div>
+
+  <div class="info-physics">This connection is one of the most striking results in econophysics. It suggests that markets, turbulence, and perhaps many other complex systems share a common mathematical structure — possibly related to self-organized criticality or multiplicative noise. Understanding the mechanism could unlock insights in both physics and finance.</div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch12')">Next: Correlations & Networks →</button>
+</div>
+</section>
+
+<!-- ======= CH12 ======= -->
+<section id="sec-ch12" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapters 12–13 — Correlation & Portfolio Taxonomy</div>
+    <h1 class="chapter-title">Correlations Between Stocks: Networks and Trees</h1>
+    <p class="chapter-lead">Stocks don't move independently. Understanding how they correlate — and how to organise them into a meaningful hierarchy — is the foundation of portfolio management.</p>
+  </div>
+
+  <div class="info-intuition">When the market crashes, almost all stocks fall together. But some are more correlated with each other than with the rest. Oil stocks move together. Tech stocks move together. Understanding this structure helps investors diversify — and helps physicists understand the emergent organisation of the market.</div>
+
+  <h2 class="section-h2">The Correlation Coefficient</h2>
+  <div class="math-box">
+    <div class="math-label">Pearson Correlation Coefficient</div>
+    <div class="eq">ρᵢⱼ = [〈SᵢSⱼ〉 - 〈Sᵢ〉〈Sⱼ〉] / [σᵢσⱼ]</div>
+    <div class="eq-desc">// Sᵢ = log return of stock i</div>
+    <div class="eq-desc">// σᵢ = standard deviation of stock i's returns</div>
+    <div class="eq-desc">// ρᵢⱼ ∈ [-1, +1]</div>
+    <div class="eq-desc">// ρ=1: perfect co-movement. ρ=-1: perfect anti-movement. ρ=0: independent</div>
+  </div>
+
+  <h2 class="section-h2">Correlation Matrix Properties</h2>
+  <p>For N stocks, we have an N×N symmetric correlation matrix. Random matrix theory (RMT) predicts that if all stocks were independent, the eigenvalues of the correlation matrix would follow the <span class="hl">Marchenko-Pastur distribution</span>.</p>
+  <p>In real markets, most eigenvalues follow the RMT prediction (noise), but a few — corresponding to market-wide and sector-wide correlations — are significantly larger. These carry the <span class="hl">true economic information</span>.</p>
+
+  <!-- CORRELATION MATRIX VISUALIZER -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Correlation Matrix — Simulated Portfolio</span>
+      <span class="viz-subtitle">Stocks organised by sector. Note how within-sector correlations are higher.</span>
+    </div>
+    <div class="viz-body">
+      <canvas id="corr-canvas" height="300"></canvas>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">N stocks</span><input type="range" min="6" max="20" step="1" value="12" id="corr-n" oninput="document.getElementById('corr-n-val').textContent=this.value;drawCorrMatrix()"><span class="ctrl-val" id="corr-n-val">12</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Within-sector ρ</span><input type="range" min="0.2" max="0.9" step="0.05" value="0.6" id="corr-rho" oninput="document.getElementById('corr-rho-val').textContent=parseFloat(this.value).toFixed(2);drawCorrMatrix()"><span class="ctrl-val" id="corr-rho-val">0.60</span></div>
+      <div style="margin-left:auto;font-size:12px;color:var(--text3);">Warm colours = high correlation. Cool = low/anti.</div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">From Correlation to Distance</h2>
+  <div class="math-box">
+    <div class="math-label">Correlation Distance Metric</div>
+    <div class="eq">dᵢⱼ = √(2(1 - ρᵢⱼ))</div>
+    <div class="eq-desc">// dᵢⱼ ∈ [0, √2]</div>
+    <div class="eq-desc">// Perfectly correlated (ρ=1): d=0 (same stock!)</div>
+    <div class="eq-desc">// Uncorrelated (ρ=0): d=√2</div>
+    <div class="eq-desc">// Anti-correlated (ρ=-1): d=2 (maximum distance)</div>
+    <div class="eq-desc">// This satisfies metric axioms: d(i,j) > 0, d(i,j)=d(j,i), d(i,k) ≤ d(i,j)+d(j,k)</div>
+  </div>
+
+  <h2 class="section-h2">Minimum Spanning Tree — Taxonomy</h2>
+  <p>Using the distance matrix, we can construct a <span class="hl">Minimum Spanning Tree (MST)</span> — the simplest network connecting all N stocks with no loops, using the shortest possible total distance. The MST extracts the most important pairwise correlations.</p>
+
+  <div class="info-analogy">Think of it like connecting N cities with roads using the minimum total road length. The MST selects only the most "important" connections — the ones that carry the most correlation information. In practice, the MST groups stocks by sector (IT companies cluster together, energy companies cluster together) — revealing the underlying economic taxonomy of the market.</div>
+
+  <h2 class="section-h2">Ultrametric Space</h2>
+  <p>The MST defines an <span class="hl">ultrametric space</span> — a special type of metric space where the triangle inequality is strengthened to:</p>
+  <div class="math-box">
+    <div class="eq">d(i,k) ≤ max[d(i,j), d(j,k)]</div>
+    <div class="eq-desc">// Ultra-triangle inequality (stricter than ordinary triangle inequality)</div>
+    <div class="eq-desc">// Ultrametric = hierarchical structure</div>
+    <div class="eq-desc">// Natural representation: a dendrogram (tree diagram)</div>
+  </div>
+
+  <div class="info-physics">Ultrametric spaces appear in spin glass physics — the study of disordered magnetic materials. The "taxonomy" of stocks discovered through correlation analysis is mathematically equivalent to the hierarchy of metastable states in a spin glass. This deep connection suggests that financial markets and disordered physical systems belong to the same mathematical universality class.</div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('ch14')">Next: Options & Black-Scholes →</button>
+</div>
+</section>
+
+<!-- ======= CH14 ======= -->
+<section id="sec-ch14" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Chapters 14–15 — Derivative Securities</div>
+    <h1 class="chapter-title">Options, Black-Scholes & Real Markets</h1>
+    <p class="chapter-lead">How do you price the right to buy a stock in the future? The Black-Scholes formula is elegant, Nobel Prize-winning — and built on assumptions that econophysics reveals to be approximations.</p>
+  </div>
+
+  <div class="info-intuition">Imagine you want to protect yourself against Apple stock falling. You buy an "insurance policy" — the right to sell Apple at today's price even if it falls. How much should this insurance cost? Black and Scholes (1973) answered this question with a beautiful formula that earned them the Nobel Prize — and launched the multi-trillion dollar derivatives industry.</div>
+
+  <h2 class="section-h2">Types of Derivative Contracts</h2>
+  <div class="card-grid card-grid-3" style="margin:16px 0;">
+    <div class="card">
+      <h3>Forward Contract</h3>
+      <p>Obligation to buy/sell an asset at a specified price on a future date. Both parties are locked in. Price today is based on today's price plus cost of carry.</p>
+    </div>
+    <div class="card">
+      <h3>Futures</h3>
+      <p>Like a forward, but standardised, traded on exchanges, and with daily mark-to-market settlement. Reduces counterparty risk. Used for commodities, currencies, indices.</p>
+    </div>
+    <div class="card" style="border-color:rgba(245,158,11,0.3)">
+      <h3>Options</h3>
+      <p><strong>Call:</strong> RIGHT (not obligation) to BUY at price K. <br><strong>Put:</strong> RIGHT to SELL at price K. <br>Premium = price of this right.</p>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Speculating and Hedging</h2>
+  <div class="card-grid card-grid-2" style="margin:16px 0;">
+    <div class="card">
+      <h3>Speculation (Example)</h3>
+      <p>Stock price S₀ = $100. Buy a call option with K=$105 for $5.</p>
+      <p>If price rises to $120: profit = $120 - $105 - $5 = $10 on a $5 investment (100% return!)</p>
+      <p>If price stays at $100: lose entire $5 premium (100% loss)</p>
+      <p>Options provide <span class="hl">leveraged exposure</span> — amplified upside AND downside.</p>
+    </div>
+    <div class="card">
+      <h3>Hedging (Risk Insurance)</h3>
+      <p>Hold 1,000 shares worth $100,000. Buy 1,000 put options with K=$95 for $2 each = $2,000 total.</p>
+      <p>If price falls to $70: options pay $25,000. Net loss = $30,000 - $25,000 + $2,000 = $7,000 (not $30,000!)</p>
+      <p>Options provide <span class="hl">downside protection</span> — like insurance for your portfolio.</p>
+    </div>
+  </div>
+
+  <h2 class="section-h2">The Black-Scholes Formula</h2>
+  <div class="math-box">
+    <div class="math-label">Black-Scholes Call Option Price</div>
+    <div class="eq">C = S₀·N(d₁) - K·e^{-rT}·N(d₂)</div>
+    <div class="eq-desc">// C: call option price (fair value)</div>
+    <div class="eq-desc">// S₀: current stock price</div>
+    <div class="eq-desc">// K: strike price (the price you have the right to buy at)</div>
+    <div class="eq-desc">// r: risk-free interest rate</div>
+    <div class="eq-desc">// T: time to expiry</div>
+    <div class="eq-desc">// σ: volatility of the stock</div>
+    <div class="eq-desc">// N(·): cumulative normal distribution</div>
+    <br>
+    <div class="eq">d₁ = [ln(S₀/K) + (r + σ²/2)T] / (σ√T)</div>
+    <div class="eq">d₂ = d₁ - σ√T</div>
+    <div class="eq-desc">// Key insight: C depends on σ but NOT on the expected return!</div>
+    <div class="eq-desc">// This is the magic of risk-neutral pricing (delta hedging)</div>
+  </div>
+
+  <!-- BLACK-SCHOLES EXPLORER -->
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Black-Scholes Option Pricing Explorer</span>
+      <span class="viz-subtitle">Adjust parameters and see option price and Greeks in real time</span>
+    </div>
+    <div class="viz-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <canvas id="bs-payoff-canvas" height="220"></canvas>
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+            <div style="background:var(--bg3);padding:14px;border-radius:8px;text-align:center;">
+              <div style="font-size:11px;color:var(--text3)">Call Price</div>
+              <div id="bs-call" style="font-family:var(--font-mono);font-size:24px;color:var(--green);">—</div>
+            </div>
+            <div style="background:var(--bg3);padding:14px;border-radius:8px;text-align:center;">
+              <div style="font-size:11px;color:var(--text3)">Put Price</div>
+              <div id="bs-put" style="font-family:var(--font-mono);font-size:24px;color:var(--red);">—</div>
+            </div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Greeks</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;padding:7px 12px;background:var(--bg3);border-radius:4px;"><span>Delta (Δ)</span><span id="bs-delta" style="font-family:var(--font-mono);color:var(--amber);">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 12px;background:var(--bg3);border-radius:4px;"><span>Gamma (Γ)</span><span id="bs-gamma" style="font-family:var(--font-mono);color:var(--amber);">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 12px;background:var(--bg3);border-radius:4px;"><span>Vega (ν)</span><span id="bs-vega" style="font-family:var(--font-mono);color:var(--amber);">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 12px;background:var(--bg3);border-radius:4px;"><span>Theta (Θ)</span><span id="bs-theta" style="font-family:var(--font-mono);color:var(--amber);">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group"><span class="ctrl-label">S₀ (stock)</span><input type="range" min="60" max="160" step="1" value="100" id="bs-s" oninput="document.getElementById('bs-s-val').textContent=this.value;updateBS()"><span class="ctrl-val" id="bs-s-val">100</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">K (strike)</span><input type="range" min="60" max="160" step="1" value="100" id="bs-k" oninput="document.getElementById('bs-k-val').textContent=this.value;updateBS()"><span class="ctrl-val" id="bs-k-val">100</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">σ (volatility)</span><input type="range" min="0.05" max="0.80" step="0.01" value="0.2" id="bs-sigma" oninput="document.getElementById('bs-sigma-val').textContent=(parseFloat(this.value)*100).toFixed(0)+'%';updateBS()"><span class="ctrl-val" id="bs-sigma-val">20%</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">T (years)</span><input type="range" min="0.1" max="2.0" step="0.05" value="1.0" id="bs-t" oninput="document.getElementById('bs-t-val').textContent=parseFloat(this.value).toFixed(1);updateBS()"><span class="ctrl-val" id="bs-t-val">1.0</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-h2">Where Black-Scholes Breaks Down</h2>
+  <div class="info-warning">Black-Scholes assumes that log-returns are Gaussian (geometric Brownian motion). As we've seen, this is false: returns have fat tails, and volatility is not constant. This creates the "volatility smile" — implied volatility varies with strike price, which it should not under the BS model.</div>
+
+  <div class="card-grid card-grid-2" style="margin:16px 0;">
+    <div class="card">
+      <h3>Historical vs Implied Volatility</h3>
+      <p><strong>Historical:</strong> measured from past returns. <strong>Implied:</strong> backed out from observed option prices using BS formula.</p>
+      <p>They should be equal in the BS world. In practice, implied volatility varies with strike (the "smile") and is often higher than historical volatility — especially for out-of-the-money puts (investors pay a premium for crash protection).</p>
+    </div>
+    <div class="card">
+      <h3>Discontinuous Returns</h3>
+      <p>Black-Scholes assumes continuous price paths. Real prices <span class="hl">jump discontinuously</span> — stocks can open 20% below yesterday's close following bad news. These jumps cannot be hedged with delta-hedging, breaking the BS risk-neutrality argument.</p>
+      <p>Jump-diffusion models, stochastic volatility models, and Lévy process models are used to correct for this.</p>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" style="margin-top:28px;" onclick="showSection('simulator')">Try the Market Simulator →</button>
+</div>
+</section>
+
+<!-- ======= MARKET SIMULATOR ======= -->
+<section id="sec-simulator" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Interactive Tool</div>
+    <h1 class="chapter-title">Market Simulator</h1>
+    <p class="chapter-lead">Generate synthetic price paths using different statistical models. See directly how the choice of distribution changes market behaviour.</p>
+  </div>
+
+  <div class="viz-panel">
+    <div class="viz-header">
+      <span class="viz-title">Full Market Simulator</span>
+      <span class="viz-subtitle">Choose model, adjust parameters, observe price paths and return distributions</span>
+    </div>
+    <div class="viz-body">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+        <canvas id="sim-price" height="220"></canvas>
+        <canvas id="sim-dist" height="220"></canvas>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;">
+        <div style="background:var(--bg3);padding:12px;border-radius:6px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);">Final Return</div>
+          <div id="sim-ret" style="font-family:var(--font-mono);font-size:18px;color:var(--amber);">—</div>
+        </div>
+        <div style="background:var(--bg3);padding:12px;border-radius:6px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);">Realised Volatility</div>
+          <div id="sim-vol" style="font-family:var(--font-mono);font-size:18px;color:var(--teal);">—</div>
+        </div>
+        <div style="background:var(--bg3);padding:12px;border-radius:6px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);">Max Drawdown</div>
+          <div id="sim-dd" style="font-family:var(--font-mono);font-size:18px;color:var(--red);">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="viz-controls">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Model:</span>
+        <select id="sim-model" onchange="runSim()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-size:12px;">
+          <option value="gaussian">Gaussian (GBM)</option>
+          <option value="levy">Lévy Stable</option>
+          <option value="garch">GARCH(1,1)</option>
+          <option value="student">Student-t</option>
+          <option value="tlf">Truncated Lévy</option>
+        </select>
+      </div>
+      <div class="ctrl-group"><span class="ctrl-label">Volatility σ</span><input type="range" min="0.005" max="0.05" step="0.001" value="0.015" id="sim-sigma" oninput="document.getElementById('sim-sigma-val').textContent=(parseFloat(this.value)*100).toFixed(1)+'%';runSim()"><span class="ctrl-val" id="sim-sigma-val">1.5%</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Drift μ</span><input type="range" min="-0.001" max="0.003" step="0.0001" value="0.0005" id="sim-drift" oninput="document.getElementById('sim-drift-val').textContent=(parseFloat(this.value)*100).toFixed(2)+'%';runSim()"><span class="ctrl-val" id="sim-drift-val">0.05%</span></div>
+      <div class="ctrl-group"><span class="ctrl-label">Tail α</span><input type="range" min="0.5" max="2.0" step="0.05" value="1.5" id="sim-alpha" oninput="document.getElementById('sim-alpha-val').textContent=parseFloat(this.value).toFixed(2);runSim()"><span class="ctrl-val" id="sim-alpha-val">1.50</span></div>
+      <button class="btn btn-primary" style="font-size:12px;padding:6px 16px;" onclick="runSim()">New Simulation</button>
+    </div>
+  </div>
+
+  <div class="info-intuition" style="margin-top:20px;">
+    <strong>What to observe:</strong> With Gaussian model, the price path looks smooth and the distribution is a perfect bell curve. Switch to Lévy or Student-t — the price path shows sudden large jumps, and the distribution has visible fat tails. The GARCH model shows "calm clusters" and "turbulent clusters" even though returns are Gaussian at each step.
+  </div>
+
+</div>
+</section>
+
+<!-- ======= QUIZ ======= -->
+<section id="sec-quiz" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Test Your Knowledge</div>
+    <h1 class="chapter-title">Quiz Center</h1>
+    <p class="chapter-lead">Challenge yourself with questions at three levels. Answers include detailed explanations from the book.</p>
+  </div>
+
+  <div class="mode-switcher">
+    <button class="mode-btn active" onclick="loadQuiz('beginner',this)">Beginner</button>
+    <button class="mode-btn" onclick="loadQuiz('intermediate',this)">Intermediate</button>
+    <button class="mode-btn" onclick="loadQuiz('advanced',this)">Advanced</button>
+  </div>
+
+  <div id="quiz-container"></div>
+
+  <div style="margin-top:24px;display:flex;gap:12px;align-items:center;">
+    <button class="btn btn-primary" onclick="loadQuiz(currentQuizLevel)">New Questions</button>
+    <span style="font-size:14px;color:var(--text2);">Score: <span id="quiz-score" style="color:var(--amber);font-family:var(--font-mono);">0</span> / <span id="quiz-total">0</span></span>
+  </div>
+</div>
+</section>
+
+<!-- ======= GLOSSARY ======= -->
+<section id="sec-glossary" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Reference</div>
+    <h1 class="chapter-title">Glossary</h1>
+    <p class="chapter-lead">Every key concept from the book, defined in plain English.</p>
+  </div>
+  <div style="margin-bottom:16px;"><input type="text" placeholder="Filter terms..." id="glossary-search" oninput="filterGlossary(this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--text);font-size:14px;outline:none;"></div>
+  <div class="glossary-filter" id="glossary-cats">
+    <button class="filter-btn active" onclick="filterGlossaryCat('all',this)">All</button>
+    <button class="filter-btn" onclick="filterGlossaryCat('probability',this)">Probability</button>
+    <button class="filter-btn" onclick="filterGlossaryCat('finance',this)">Finance</button>
+    <button class="filter-btn" onclick="filterGlossaryCat('physics',this)">Physics</button>
+    <button class="filter-btn" onclick="filterGlossaryCat('models',this)">Models</button>
+  </div>
+  <div class="glossary-grid" id="glossary-grid"></div>
+</div>
+</section>
+
+<!-- ======= FORMULAS ======= -->
+<section id="sec-formulas" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Quick Reference</div>
+    <h1 class="chapter-title">Formula Sheet</h1>
+    <p class="chapter-lead">Every key equation from the book in one place.</p>
+  </div>
+  <div id="formula-sheet"></div>
+</div>
+</section>
+
+<!-- ======= TIMELINE ======= -->
+<section id="sec-timeline" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">History of Ideas</div>
+    <h1 class="chapter-title">Historical Timeline</h1>
+    <p class="chapter-lead">100 years of econophysics, from Bachelier's thesis to modern big-data empirical analysis.</p>
+  </div>
+  <div class="timeline">
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1897</div><div class="timeline-title">Pareto's Power Law</div><div class="timeline-text">Vilfredo Pareto discovers that wealth distribution follows a power law y ~ x⁻¹·⁵. First empirical power law in social sciences.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1900</div><div class="timeline-title">Bachelier's Thesis</div><div class="timeline-text">Louis Bachelier (advised by Poincaré) models stock prices as a random walk in <em>Théorie de la spéculation</em>. Anticipates Einstein's 1905 work on Brownian motion by 5 years.</div></div>
+    <div class="timeline-item"><div class="timeline-dot" style="background:var(--teal)"></div><div class="timeline-year">1905</div><div class="timeline-title">Einstein's Brownian Motion</div><div class="timeline-text">Einstein derives the diffusion equation for particle motion, inadvertently rediscovering Bachelier's random walk. Establishes the mathematical foundation for stochastic processes in physics.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1953</div><div class="timeline-title">Kendall's Empirical Work</div><div class="timeline-text">Maurice Kendall finds that stock prices are nearly uncorrelated from day to day — initially viewed as a puzzle, later interpreted as evidence for market efficiency.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1963</div><div class="timeline-title">Mandelbrot's Lévy Hypothesis</div><div class="timeline-text">Mandelbrot proposes that cotton price changes follow a Lévy stable distribution with α≈1.7. "The most revolutionary development since Bachelier." Introduces power laws and fat tails to financial theory.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1965</div><div class="timeline-title">Samuelson & Fama: EMH</div><div class="timeline-text">Samuelson proves mathematically that properly anticipated prices fluctuate randomly. Fama formulates the Efficient Market Hypothesis (EMH) and tests it empirically.</div></div>
+    <div class="timeline-item"><div class="timeline-dot" style="background:var(--teal)"></div><div class="timeline-year">1973</div><div class="timeline-title">Black-Scholes Formula</div><div class="timeline-text">Fischer Black and Myron Scholes publish the options pricing formula, assuming geometric Brownian motion. Launches the modern derivatives industry. Later earns the Nobel Prize (1997).</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1982</div><div class="timeline-title">Engle's ARCH Model</div><div class="timeline-text">Robert Engle introduces ARCH — the first model to explicitly capture time-varying volatility and volatility clustering. Nobel Prize in Economics 2003.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1986</div><div class="timeline-title">Bollerslev's GARCH</div><div class="timeline-text">Tim Bollerslev generalises ARCH to GARCH — a more parsimonious model that became the workhorse of financial econometrics.</div></div>
+    <div class="timeline-item"><div class="timeline-dot" style="background:var(--amber)"></div><div class="timeline-year">1990s</div><div class="timeline-title">Econophysics Emerges</div><div class="timeline-text">Stanley, Mantegna, and collaborators begin systematic empirical studies of financial markets using physics methods. The term "econophysics" is coined. New journals and conferences are launched.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1994</div><div class="timeline-title">Truncated Lévy Flight</div><div class="timeline-text">Mantegna and Stanley propose the TLF — reconciling Mandelbrot's fat tails with the empirical observation of finite variance in S&P 500 data.</div></div>
+    <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-year">1999</div><div class="timeline-title">Inverse Cubic Law</div><div class="timeline-text">Gopikrishnan et al. analyse 40 million stock price records and find the universal power-law exponent α≈3 for the tail of the return distribution — the same in US, UK, Japan, and Germany.</div></div>
+    <div class="timeline-item"><div class="timeline-dot" style="background:var(--teal)"></div><div class="timeline-year">2000s</div><div class="timeline-title">Network Science & Markets</div><div class="timeline-text">Mantegna applies minimum spanning trees to model portfolio taxonomy. Correlation matrices analysed using random matrix theory. Financial networks studied using complex network methods.</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ======= DASHBOARD ======= -->
+<section id="sec-dashboard" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Your Journey</div>
+    <h1 class="chapter-title">Learning Dashboard</h1>
+    <p class="chapter-lead">Track your progress through the book.</p>
+  </div>
+  <div class="dashboard-grid">
+    <div class="dash-card"><div class="dash-num" id="dash-visited">0</div><div class="dash-label">Chapters Visited</div></div>
+    <div class="dash-card"><div class="dash-num" id="dash-quiz">0</div><div class="dash-label">Quiz Questions Answered</div></div>
+    <div class="dash-card"><div class="dash-num" id="dash-correct">0%</div><div class="dash-label">Quiz Accuracy</div></div>
+    <div class="dash-card"><div class="dash-num" id="dash-total">0%</div><div class="dash-label">Overall Progress</div></div>
+  </div>
+  <h2 class="section-h2">Chapter Progress</h2>
+  <div class="chapter-progress-list" id="chap-prog-list"></div>
+</div>
+</section>
+
+<!-- ======= REFS ======= -->
+<section id="sec-refs" class="section">
+<div class="chapter-wrap">
+  <div class="chapter-hero">
+    <div class="chapter-tag">Bibliography</div>
+    <h1 class="chapter-title">Key References</h1>
+    <p class="chapter-lead">Essential papers and books for going deeper into econophysics.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <div class="card"><h3>Mantegna & Stanley (2000)</h3><p><em>An Introduction to Econophysics: Correlations and Complexity in Finance.</em> Cambridge University Press. The primary source for this educational application.</p></div>
+    <div class="card"><h3>Bachelier (1900)</h3><p><em>Théorie de la spéculation.</em> Annales Scientifiques de l'École Normale Supérieure. The first mathematical treatment of stock price dynamics as a random walk.</p></div>
+    <div class="card"><h3>Mandelbrot (1963)</h3><p>"The Variation of Certain Speculative Prices." Journal of Business, 36, 394–419. The paper that introduced Lévy stable distributions to financial modelling.</p></div>
+    <div class="card"><h3>Black & Scholes (1973)</h3><p>"The Pricing of Options and Corporate Liabilities." Journal of Political Economy, 81, 637–659. The foundational paper of modern derivatives pricing theory.</p></div>
+    <div class="card"><h3>Engle (1982)</h3><p>"Autoregressive Conditional Heteroskedasticity with Estimates of the Variance of United Kingdom Inflation." Econometrica, 50, 987–1007. Introduction of the ARCH model.</p></div>
+    <div class="card"><h3>Gopikrishnan et al. (1999)</h3><p>"Scaling of the Distribution of Fluctuations of Financial Market Indices." Physical Review E, 60, 5305–5316. Empirical discovery of the inverse cubic law.</p></div>
+    <div class="card"><h3>Bouchaud & Potters (2003)</h3><p><em>Theory of Financial Risk and Derivative Pricing.</em> Cambridge University Press. A comprehensive graduate-level treatment of econophysics methods.</p></div>
+    <div class="card"><h3>Sornette (2003)</h3><p><em>Why Stock Markets Crash: Critical Events in Complex Financial Systems.</em> Princeton University Press. Application of critical phenomena to financial crashes.</p></div>
+  </div>
+</div>
+</section>
+
+</main>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  visited: new Set(),
+  quizAnswered: 0,
+  quizCorrect: 0,
+  currentSection: 'landing'
+};
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  const sec = document.getElementById('sec-' + id);
+  if (sec) {
+    sec.classList.add('active');
+    // scroll main to top
+    document.getElementById('main').scrollTo ? document.getElementById('main').scrollTo(0, 0) : window.scrollTo(0, 0);
+  }
+  // Mark sidebar item
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    if (item.getAttribute('onclick') && item.getAttribute('onclick').includes("'" + id + "'")) {
+      item.classList.add('active');
+    }
+  });
+  state.currentSection = id;
+  state.visited.add(id);
+  updateDashboard();
+
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+
+  // Trigger lazy renders
+  setTimeout(() => {
+    if (id === 'ch3') { drawRW(); drawCLT(); }
+    if (id === 'ch4') { drawLevy(); drawPowerLaw(); }
+    if (id === 'ch6') { drawACF(); }
+    if (id === 'ch8') { drawTLF(); }
+    if (id === 'ch10') { drawGARCH(); }
+    if (id === 'ch12') { drawCorrMatrix(); }
+    if (id === 'ch14') { updateBS(); }
+    if (id === 'simulator') { runSim(); }
+    if (id === 'quiz') { loadQuiz('beginner'); }
+    if (id === 'glossary') { renderGlossary(); }
+    if (id === 'formulas') { renderFormulas(); }
+    if (id === 'dashboard') { renderDashboard(); }
+  }, 100);
+}
+
+function switchTab(el, contentId) {
+  const parent = el.closest('.chapter-wrap') || el.parentElement.parentElement;
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  parent.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const c = document.getElementById(contentId);
+  if (c) c.classList.add('active');
+}
+
+function setMode(mode, btn) {
+  btn.parentElement.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ============================================================
+// BACKGROUND ANIMATION
+// ============================================================
+(function initBG() {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, nodes = [];
+  function resize() {
+    W = canvas.width = canvas.clientWidth; H = canvas.height = canvas.clientHeight;
+  }
+  function mkNode() {
+    return { x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-0.5)*0.4, vy: (Math.random()-0.5)*0.4 };
+  }
+  function initNodes() { nodes = Array.from({length:50}, mkNode); }
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    // Draw connections
+    for (let i=0;i<nodes.length;i++) {
+      for (let j=i+1;j<nodes.length;j++) {
+        const dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if (d < 120) {
+          ctx.strokeStyle = `rgba(245,158,11,${0.15*(1-d/120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath(); ctx.moveTo(nodes[i].x,nodes[i].y); ctx.lineTo(nodes[j].x,nodes[j].y); ctx.stroke();
+        }
+      }
+    }
+    // Draw nodes
+    nodes.forEach(n => {
+      ctx.fillStyle = 'rgba(245,158,11,0.5)';
+      ctx.beginPath(); ctx.arc(n.x,n.y,1.5,0,Math.PI*2); ctx.fill();
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0||n.x > W) n.vx *= -1;
+      if (n.y < 0||n.y > H) n.vy *= -1;
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize', () => { resize(); initNodes(); });
+  resize(); initNodes(); draw();
+})();
+
+// ============================================================
+// ARBITRAGE DEMO
+// ============================================================
+let miamiPriceVal = 0.5, naplesPriceVal = 0.6, exchangeRate = 0.80, transport = 0.10;
+function updateArbitrage(val, side) {
+  if (side === 'miami') { miamiPriceVal = parseFloat(val); document.getElementById('miami-val').textContent = parseFloat(val).toFixed(2); }
+  else { naplesPriceVal = parseFloat(val); document.getElementById('naples-val').textContent = parseFloat(val).toFixed(2); }
+  document.getElementById('miami-price').textContent = '$' + miamiPriceVal.toFixed(2);
+  document.getElementById('naples-price').textContent = '€' + naplesPriceVal.toFixed(2);
+  const miamiInEur = miamiPriceVal * exchangeRate;
+  const profit = naplesPriceVal - miamiInEur - transport;
+  const sig = document.getElementById('arb-signal');
+  const calc = document.getElementById('arb-calc');
+  const qty = 100000;
+  if (profit > 0) {
+    sig.textContent = 'Correct: Arbitrage opportunity!'; sig.style.background = 'rgba(4,120,87,0.10)'; sig.style.color = '#047857';
+    calc.innerHTML = `Buy ${qty.toLocaleString()} kg in Miami: $${(miamiPriceVal*qty).toFixed(0)}\nCost in euros: €${(miamiInEur*qty).toFixed(0)}\nSell in Naples: €${(naplesPriceVal*qty).toFixed(0)}\nTransport: €${(transport*qty).toFixed(0)}\n\nProfit: €${(profit*qty).toFixed(0)}`;
+  } else {
+    sig.textContent = 'Limitation: No arbitrage'; sig.style.background = 'rgba(190,18,60,0.08)'; sig.style.color = '#be123c';
+    calc.innerHTML = `Loss per kg: €${(-profit).toFixed(3)}\nNo profitable arbitrage exists at these prices.`;
+  }
+}
+updateArbitrage(0.5,'miami');
+
+// ============================================================
+// CANVAS UTILS
+// ============================================================
+function getCtx(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  const ctx = c.getContext('2d');
+  const W = c.clientWidth || c.width;
+  c.width = W; c.height = parseInt(c.getAttribute('height')) || 240;
+  return { ctx, W, H: c.height };
+}
+
+function drawGrid(ctx, W, H, pad) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i=0; i<6; i++) {
+    const y = pad + (H-2*pad)*i/5;
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke();
+  }
+  for (let i=0; i<8; i++) {
+    const x = pad + (W-2*pad)*i/7;
+    ctx.beginPath(); ctx.moveTo(x,pad); ctx.lineTo(x,H-pad); ctx.stroke();
+  }
+}
+
+// ============================================================
+// RANDOM WALK
+// ============================================================
+function drawRW() {
+  const r = getCtx('rw-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const N = parseInt(document.getElementById('rw-steps').value);
+  const paths = parseInt(document.getElementById('rw-paths').value);
+  const pad = 30;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  drawGrid(ctx,W,H,pad);
+  const colors = ['#f59e0b','#06b6d4','#10b981','#f43f5e','#a78bfa','#fb923c','#34d399','#60a5fa','#e879f9','#fbbf24','#67e8f9','#6ee7b7','#fca5a5','#c4b5fd','#fdba74','#818cf8','#86efac','#5eead4','#fde68a','#93c5fd'];
+  let allVals = [];
+  const series = [];
+  for (let p=0; p<paths; p++) {
+    const walk = [0];
+    for (let i=1; i<=N; i++) walk.push(walk[i-1] + (Math.random()<0.5?1:-1));
+    series.push(walk);
+    allVals = allVals.concat(walk);
+  }
+  const minV = Math.min(...allVals), maxV = Math.max(...allVals);
+  const rng = maxV - minV || 1;
+  function mapX(i) { return pad + (i/N)*(W-2*pad); }
+  function mapY(v) { return pad + (1-(v-minV)/rng)*(H-2*pad); }
+
+  // Draw sqrt(n) envelope
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  const sqrtN = Math.sqrt(N);
+  ctx.beginPath();
+  for (let i=0; i<=N; i++) { const y = mapY(Math.sqrt(i)); if(i===0) ctx.moveTo(mapX(i),y); else ctx.lineTo(mapX(i),y); }
+  ctx.stroke();
+  ctx.beginPath();
+  for (let i=0; i<=N; i++) { const y = mapY(-Math.sqrt(i)); if(i===0) ctx.moveTo(mapX(i),y); else ctx.lineTo(mapX(i),y); }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw walks
+  series.forEach((walk, pi) => {
+    ctx.strokeStyle = colors[pi % colors.length]; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    walk.forEach((v,i) => { if(i===0) ctx.moveTo(mapX(i),mapY(v)); else ctx.lineTo(mapX(i),mapY(v)); });
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+  document.getElementById('rw-sigma').textContent = Math.sqrt(N).toFixed(1);
+}
+
+// ============================================================
+// CLT
+// ============================================================
+function sampleDist(dist) {
+  switch(dist) {
+    case 'uniform': return Math.random()*2-1;
+    case 'triangular': return (Math.random()-Math.random());
+    case 'exponential': { const u = Math.random(); return u < 0.5 ? -Math.log(1-u) : Math.log(1-(1-u)); }
+    case 'bimodal': return Math.random() < 0.5 ? 1+Math.random()*0.1 : -1-Math.random()*0.1;
+    default: return Math.random()*2-1;
+  }
+}
+
+function drawCLT() {
+  const r = getCtx('clt-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const n = parseInt(document.getElementById('clt-n').value);
+  const dist = document.getElementById('clt-dist').value;
+  const nSamples = 3000;
+  const pad = 36;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  drawGrid(ctx,W,H,pad);
+
+  // Generate samples
+  const samples = [];
+  for (let i=0; i<nSamples; i++) {
+    let s = 0; for (let j=0; j<n; j++) s += sampleDist(dist);
+    samples.push(s/Math.sqrt(n));
+  }
+  const mu = samples.reduce((a,b)=>a+b,0)/nSamples;
+  const sig = Math.sqrt(samples.reduce((a,b)=>a+(b-mu)**2,0)/nSamples);
+  const lo = Math.max(-4, mu-4*sig), hi = Math.min(4, mu+4*sig);
+
+  // Histogram
+  const nBins = 40;
+  const binW = (hi-lo)/nBins;
+  const bins = new Array(nBins).fill(0);
+  samples.forEach(s => { const bi = Math.floor((s-lo)/binW); if(bi>=0&&bi<nBins) bins[bi]++; });
+  const maxBin = Math.max(...bins);
+  function mapX(v) { return pad + (v-lo)/(hi-lo)*(W-2*pad); }
+  function mapY(v) { return H-pad - v/(maxBin/nSamples/binW)*0.9*(H-2*pad); }
+
+  // Draw histogram
+  bins.forEach((b,i) => {
+    const x = mapX(lo + i*binW);
+    const bw = (W-2*pad)/nBins;
+    const h = H-pad - mapY(b/nSamples/binW);
+    const alpha = n > 5 ? 0.3 : 0.7;
+    ctx.fillStyle = `rgba(245,158,11,${alpha})`;
+    ctx.fillRect(x, mapY(b/nSamples/binW), bw-1, h);
+  });
+
+  // Gaussian overlay
+  const gMax = 1/(sig*Math.sqrt(2*Math.PI));
+  ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2; ctx.setLineDash([]);
+  ctx.beginPath();
+  for (let xi=lo; xi<=hi; xi+=(hi-lo)/200) {
+    const g = Math.exp(-0.5*((xi-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));
+    const y = H-pad - g/gMax*0.9*(H-2*pad);
+    if (xi===lo) ctx.moveTo(mapX(xi),y); else ctx.lineTo(mapX(xi),y);
+  }
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`n = ${n} | μ = ${mu.toFixed(2)} | σ = ${sig.toFixed(2)}`, pad, pad-6);
+  ctx.fillStyle = '#06b6d4'; ctx.fillText('— Gaussian', W-110, pad-6);
+}
+
+// ============================================================
+// LEVY FLIGHT
+// ============================================================
+function levySample(alpha, gamma=1) {
+  // Chambers-Mallows-Stuck algorithm (symmetric)
+  const U = Math.PI * (Math.random() - 0.5);
+  const W = -Math.log(Math.random() + 1e-10);
+  if (Math.abs(alpha - 1) < 0.01) return Math.tan(U);
+  const term1 = Math.sin(alpha * U) / Math.pow(Math.cos(U), 1/alpha);
+  const term2 = Math.pow(Math.cos((1-alpha)*U)/W, (1-alpha)/alpha);
+  return gamma * term1 * term2;
+}
+
+function drawLevy() {
+  const r = getCtx('levy-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const alpha = parseFloat(document.getElementById('levy-alpha').value);
+  const N = parseInt(document.getElementById('levy-steps').value);
+  const pad = 30;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  drawGrid(ctx,W,H,pad);
+
+  // Generate Lévy walk and Gaussian walk
+  const lvWalk = [0], gwWalk = [0];
+  for (let i=1; i<=N; i++) {
+    const lvStep = levySample(alpha, 0.5);
+    lvWalk.push(lvWalk[i-1] + Math.max(-20, Math.min(20, lvStep)));
+    gwWalk.push(gwWalk[i-1] + (Math.random()*2-1)*Math.sqrt(3));
+  }
+  const allV = lvWalk.concat(gwWalk);
+  const mn = Math.min(...allV), mx = Math.max(...allV);
+  function mapX(i) { return pad + (i/N)*(W-2*pad); }
+  function mapY(v) { return pad + (1-(v-mn)/(mx-mn||1))*(H-2*pad); }
+
+  // Gaussian (teal)
+  ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.7;
+  ctx.beginPath();
+  gwWalk.forEach((v,i) => { if(i===0) ctx.moveTo(mapX(i),mapY(v)); else ctx.lineTo(mapX(i),mapY(v)); });
+  ctx.stroke();
+
+  // Lévy (amber)
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  lvWalk.forEach((v,i) => { if(i===0) ctx.moveTo(mapX(i),mapY(v)); else ctx.lineTo(mapX(i),mapY(v)); });
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Mark large jumps
+  for (let i=1; i<lvWalk.length; i++) {
+    const diff = Math.abs(lvWalk[i]-lvWalk[i-1]);
+    if (diff > 5) {
+      ctx.fillStyle = '#f43f5e'; ctx.beginPath();
+      ctx.arc(mapX(i), mapY(lvWalk[i]), 3, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  // Legend
+  ctx.font = '11px JetBrains Mono'; ctx.fillStyle = '#f59e0b'; ctx.fillText(`Lévy α=${alpha}`, W-130, pad-8);
+  ctx.fillStyle = '#06b6d4'; ctx.fillText('Gaussian', W-130, pad+6);
+}
+
+// ============================================================
+// POWER LAW LOG-LOG
+// ============================================================
+function drawPowerLaw() {
+  const r = getCtx('pl-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const alpha = parseFloat(document.getElementById('pl-alpha').value);
+  const pad = 40;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+
+  // Log-log axes
+  const xMin = 0, xMax = 2.5; // log10 of x
+  const yMin = -6, yMax = 0;  // log10 of P
+  function mapX(v) { return pad + (v-xMin)/(xMax-xMin)*(W-2*pad); }
+  function mapY(v) { return H-pad - (v-yMin)/(yMax-yMin)*(H-2*pad); }
+
+  drawGrid(ctx,W,H,pad);
+
+  // Gaussian tail: P(|x|>z) ~ exp(-z²/2)
+  ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let lx=0.01; lx<=2.5; lx+=0.05) {
+    const z = Math.pow(10,lx);
+    const logp = Math.log10(Math.exp(-z*z/2));
+    if (logp >= yMin && logp <= yMax) {
+      const px = mapX(lx), py = mapY(logp);
+      lx===0.01 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    }
+  }
+  ctx.stroke();
+
+  // Lévy (power law) tail: P(|x|>z) ~ z^{-alpha}
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  let first = true;
+  for (let lx=0.01; lx<=2.5; lx+=0.05) {
+    const z = Math.pow(10,lx);
+    const logp = -alpha * lx;
+    if (logp >= yMin && logp <= yMax) {
+      const px = mapX(lx), py = mapY(logp);
+      first ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+      first = false;
+    }
+  }
+  ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('log₁₀|z|', W-80, H-8);
+  ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('log₁₀ P(|r|>z)', -50, 0); ctx.restore();
+
+  // Gridlines and tick labels
+  [1,2,3].forEach(v => {
+    ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
+    ctx.fillText(v, mapX(v)-3, H-pad+12);
+  });
+  [-2,-4,-6].forEach(v => {
+    ctx.fillText(v, 2, mapY(v)+3);
+  });
+
+  // Legend
+  ctx.fillStyle = '#f59e0b'; ctx.fillText(`Lévy α=${alpha} (power law)`, pad, pad-12);
+  ctx.fillStyle = '#06b6d4'; ctx.fillText('Gaussian (exp decay)', pad+180, pad-12);
+}
+
+// ============================================================
+// ACF
+// ============================================================
+function drawACF() {
+  const r = getCtx('acf-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const mem = parseFloat(document.getElementById('acf-mem').value);
+  const type = document.getElementById('acf-type').value;
+  const lags = 40;
+  const pad = 40;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  drawGrid(ctx,W,H,pad);
+
+  // Compute ACF
+  const N = 2000;
+  const confBand = 1.96 / Math.sqrt(N);
+
+  // Returns ACF: near zero (slightly decaying)
+  const aRet = Array.from({length:lags}, (_,k) => k===0 ? 1 : (Math.random()-0.5)*confBand*2);
+
+  // |Returns| ACF: power-law decay (volatility clustering)
+  const aAbs = Array.from({length:lags}, (_,k) => k===0 ? 1 : Math.max(0, mem * Math.pow(k+1, -0.3)));
+
+  function barX(k) { return pad + (k+0.5)/(lags)*(W-2*pad); }
+  const bw = (W-2*pad)/lags * 0.5;
+  function mapY(v) { return H/2 - v/(1)*(H/2-pad)*1.5; }
+
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad, H/2); ctx.lineTo(W-pad, H/2); ctx.stroke();
+
+  // Confidence bands
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.setLineDash([4,4]);
+  [confBand, -confBand].forEach(cb => {
+    ctx.beginPath(); ctx.moveTo(pad, mapY(cb)); ctx.lineTo(W-pad, mapY(cb)); ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Draw bars
+  if (type !== 'abs') {
+    aRet.forEach((v,k) => {
+      if (k===0) return;
+      const x = barX(k)-bw/2, y = v >= 0 ? mapY(v) : H/2;
+      const h = Math.abs(mapY(v)-H/2);
+      ctx.fillStyle = v >= 0 ? 'rgba(245,158,11,0.7)' : 'rgba(244,63,94,0.7)';
+      ctx.fillRect(x, y, bw, h);
+    });
+  }
+  if (type !== 'returns') {
+    aAbs.forEach((v,k) => {
+      if (k===0) return;
+      const offset = type==='both' ? bw/2 : 0;
+      const x = barX(k)+offset-bw/2, y = mapY(v), h = H/2-y;
+      ctx.fillStyle = 'rgba(6,182,212,0.7)';
+      ctx.fillRect(x, y, bw, h);
+    });
+  }
+
+  // Lag labels
+  ctx.fillStyle = '#475569'; ctx.font = '9px JetBrains Mono';
+  [10,20,30,40].forEach(l => ctx.fillText(l, barX(l-1)-5, H-pad+12));
+  ctx.fillText('Lag (days)', W/2-20, H-6);
+  ctx.fillStyle = '#64748b'; ctx.font = '9px JetBrains Mono';
+  ctx.fillText('Autocorrelation', 2, H/2);
+}
+
+// ============================================================
+// TLF
+// ============================================================
+function drawTLF() {
+  const r = getCtx('tlf-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const alpha = parseFloat(document.getElementById('tlf-alpha').value);
+  const n = parseInt(document.getElementById('tlf-n').value);
+  const pad = 36;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  drawGrid(ctx,W,H,pad);
+
+  const nSamples = 2000;
+  const cutoff = 5;
+  // Generate TLF samples: Lévy steps truncated at ±cutoff, summed n times
+  const samples = [];
+  for (let i=0; i<nSamples; i++) {
+    let s = 0;
+    for (let j=0; j<n; j++) {
+      let step = levySample(alpha, 1);
+      step = Math.max(-cutoff, Math.min(cutoff, step));
+      s += step;
+    }
+    samples.push(s/Math.pow(n, 1/alpha)); // scaled
+  }
+
+  const mu = samples.reduce((a,b)=>a+b)/nSamples;
+  const sig = Math.sqrt(samples.reduce((a,b)=>a+(b-mu)**2,0)/nSamples);
+  const lo = Math.max(mu-6*sig, -15), hi = Math.min(mu+6*sig, 15);
+  const nBins = 50, binW = (hi-lo)/nBins;
+  const bins = new Array(nBins).fill(0);
+  samples.forEach(s => { const bi = Math.floor((s-lo)/binW); if(bi>=0&&bi<nBins) bins[bi]++; });
+  const maxBin = Math.max(...bins);
+  function mapX(v) { return pad + (v-lo)/(hi-lo)*(W-2*pad); }
+  function mapY(v) { return H-pad - v/maxBin*0.9*(H-2*pad); }
+
+  // Histogram bars (amber)
+  bins.forEach((b,i) => {
+    const x = mapX(lo+i*binW), bw2 = (W-2*pad)/nBins;
+    ctx.fillStyle = 'rgba(245,158,11,0.5)';
+    ctx.fillRect(x, mapY(b), bw2-1, H-pad-mapY(b));
+  });
+
+  // Gaussian overlay
+  ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 2;
+  ctx.beginPath(); let gFirst = true;
+  for (let xi=lo; xi<=hi; xi+=(hi-lo)/200) {
+    const g = Math.exp(-0.5*((xi-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));
+    const y = H-pad - g/(1/(sig*Math.sqrt(2*Math.PI)))*0.9*(H-2*pad);
+    gFirst ? ctx.moveTo(mapX(xi),y) : ctx.lineTo(mapX(xi),y);
+    gFirst = false;
+  }
+  ctx.stroke();
+
+  // Lévy overlay for n=1
+  if (n <= 3) {
+    ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1.5; ctx.setLineDash([4,4]);
+    // approximate Lévy as power law in tails
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText(`n=${n}, α=${alpha} | σ=${sig.toFixed(2)}`, pad, pad-8);
+  if (n>20) ctx.fillText('→ Gaussian regime', W-160, pad-8);
+  else ctx.fillText('→ Lévy-like regime', W-160, pad-8);
+}
+
+// ============================================================
+// GARCH
+// ============================================================
+function drawGARCH() {
+  const r = getCtx('garch-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const a1 = parseFloat(document.getElementById('garch-a1').value);
+  const b1 = parseFloat(document.getElementById('garch-b1').value);
+  const a0 = 0.00001;
+  const N = 400;
+  const pad = 36;
+
+  document.getElementById('garch-persist').textContent = (a1+b1).toFixed(2);
+
+  // Simulate GARCH(1,1)
+  let sig2 = a0/(1-a1-b1), returns = [], vols = [];
+  for (let i=0; i<N; i++) {
+    const sigma = Math.sqrt(sig2);
+    const eps = gaussian();
+    const ret = sigma * eps;
+    returns.push(ret);
+    vols.push(sigma);
+    sig2 = a0 + a1*ret*ret + b1*sig2;
+  }
+
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  const h1 = H*0.6, h2 = H*0.4;
+
+  // Top panel: returns
+  const retMax = Math.max(...returns.map(Math.abs))*1.2 || 0.05;
+  function mapRY(v) { return h1/2 - v/retMax*(h1/2-pad/2); }
+  function mapX(i) { return pad + (i/N)*(W-2*pad); }
+
+  // Zero line
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad,h1/2); ctx.lineTo(W-pad,h1/2); ctx.stroke();
+
+  returns.forEach((v,i) => {
+    const x = mapX(i); const w = (W-2*pad)/N;
+    const y = v>=0 ? mapRY(v) : h1/2;
+    ctx.fillStyle = v>=0 ? 'rgba(16,185,129,0.7)' : 'rgba(244,63,94,0.7)';
+    ctx.fillRect(x, y, w, Math.abs(mapRY(v)-h1/2));
+  });
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('Returns (GARCH simulated)', pad, pad/2);
+
+  // Bottom panel: conditional volatility
+  const volMax = Math.max(...vols)*1.2;
+  function mapVY(v) { return h1 + h2 - 10 - v/volMax*(h2-20); }
+  ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  vols.forEach((v,i) => { i===0 ? ctx.moveTo(mapX(i),mapVY(v)) : ctx.lineTo(mapX(i),mapVY(v)); });
+  ctx.stroke();
+  ctx.fillStyle = '#a78bfa'; ctx.fillText('Conditional Volatility σₜ', pad, h1+12);
+}
+
+function gaussian() {
+  let u, v, s;
+  do { u = Math.random()*2-1; v = Math.random()*2-1; s = u*u+v*v; } while (s>=1||s===0);
+  return u * Math.sqrt(-2*Math.log(s)/s);
+}
+
+// ============================================================
+// CORRELATION MATRIX
+// ============================================================
+function drawCorrMatrix() {
+  const r = getCtx('corr-canvas'); if (!r) return;
+  const {ctx,W,H} = r;
+  const N = parseInt(document.getElementById('corr-n').value);
+  const rhoWithin = parseFloat(document.getElementById('corr-rho').value);
+  const nSectors = 3;
+  const sectorSize = Math.ceil(N/nSectors);
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  const pad = 30;
+  const cellSize = Math.min((W-2*pad)/N, (H-2*pad)/N);
+  const ox = (W - cellSize*N)/2, oy = (H-2*pad-cellSize*N)/2 + pad/2;
+
+  // Build matrix
+  const mat = [];
+  for (let i=0; i<N; i++) {
+    mat[i] = [];
+    for (let j=0; j<N; j++) {
+      if (i===j) { mat[i][j]=1; continue; }
+      const si = Math.floor(i/sectorSize), sj = Math.floor(j/sectorSize);
+      const base = si===sj ? rhoWithin : rhoWithin*0.2;
+      mat[i][j] = base + (Math.random()-0.5)*0.1;
+      mat[j][i] = mat[i][j];
+    }
+  }
+
+  // Draw
+  for (let i=0; i<N; i++) {
+    for (let j=0; j<N; j++) {
+      const v = mat[i][j];
+      let r, g, b;
+      if (v > 0) { r=195+60*v; g=Math.floor(200*(1-v)); b=Math.floor(80*(1-v)); }
+      else { r=Math.floor(80*(1+v)); g=Math.floor(200*(1+v)); b=195-60*v; }
+      ctx.fillStyle = `rgb(${Math.min(255,r|0)},${g|0},${Math.min(255,b|0)})`;
+      ctx.fillRect(ox+j*cellSize, oy+i*cellSize, cellSize-1, cellSize-1);
+    }
+  }
+
+  // Sector labels
+  ctx.fillStyle = '#94a3b8'; ctx.font = '10px JetBrains Mono';
+  ['IT','Finance','Energy'].forEach((s,i) => {
+    const x = ox + Math.min(sectorSize*i, N-1)*cellSize + cellSize/2;
+    ctx.fillText(s, Math.min(x, W-30), oy+N*cellSize+14);
+  });
+
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono';
+  ctx.fillText('Warm = high correlation (+1)', pad, oy-8);
+  ctx.fillText('Cool = low/anti (-1)', W-150, oy-8);
+}
+
+// ============================================================
+// BLACK-SCHOLES
+// ============================================================
+function normCDF(x) {
+  const t = 1/(1+0.2316419*Math.abs(x));
+  const d = 0.3989422820*Math.exp(-x*x/2);
+  const poly = t*(0.3193815301 + t*(-0.3565637813 + t*(1.7814779372 + t*(-1.8212559979 + t*1.3302744929))));
+  const cdf = 1 - d*poly;
+  return x >= 0 ? cdf : 1-cdf;
+}
+function normPDF(x) { return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI); }
+
+function blackScholes(S, K, r, T, sigma) {
+  if (T<=0) return { call: Math.max(S-K,0), put: Math.max(K-S,0), delta:0, gamma:0, vega:0, theta:0 };
+  const d1 = (Math.log(S/K) + (r + sigma*sigma/2)*T) / (sigma*Math.sqrt(T));
+  const d2 = d1 - sigma*Math.sqrt(T);
+  const Nd1 = normCDF(d1), Nd2 = normCDF(d2);
+  const call = S*Nd1 - K*Math.exp(-r*T)*Nd2;
+  const put  = K*Math.exp(-r*T)*normCDF(-d2) - S*normCDF(-d1);
+  const delta = Nd1;
+  const gamma = normPDF(d1) / (S*sigma*Math.sqrt(T));
+  const vega  = S*normPDF(d1)*Math.sqrt(T)/100;
+  const theta = (-S*normPDF(d1)*sigma/(2*Math.sqrt(T)) - r*K*Math.exp(-r*T)*Nd2)/252;
+  return { call, put, delta, gamma, vega, theta };
+}
+
+function updateBS() {
+  const S = parseFloat(document.getElementById('bs-s').value);
+  const K = parseFloat(document.getElementById('bs-k').value);
+  const sigma = parseFloat(document.getElementById('bs-sigma').value);
+  const T = parseFloat(document.getElementById('bs-t').value);
+  const r = 0.05;
+  const v = blackScholes(S, K, r, T, sigma);
+  document.getElementById('bs-call').textContent = '$' + v.call.toFixed(2);
+  document.getElementById('bs-put').textContent = '$' + v.put.toFixed(2);
+  document.getElementById('bs-delta').textContent = v.delta.toFixed(4);
+  document.getElementById('bs-gamma').textContent = v.gamma.toFixed(4);
+  document.getElementById('bs-vega').textContent = v.vega.toFixed(4);
+  document.getElementById('bs-theta').textContent = v.theta.toFixed(4);
+  drawBSPayoff(S, K, sigma, T, r);
+}
+
+function drawBSPayoff(S, K, sigma, T, r) {
+  const rr = getCtx('bs-payoff-canvas'); if (!rr) return;
+  const {ctx,W,H} = rr;
+  const pad = 30;
+  ctx.fillStyle = '#0c1322'; ctx.fillRect(0,0,W,H);
+  drawGrid(ctx,W,H,pad);
+  const S_range = Array.from({length:60}, (_,i) => S*0.5 + i*(S*1.0/59));
+  const callVals = S_range.map(s => blackScholes(s,K,r,T,sigma).call);
+  const putVals  = S_range.map(s => blackScholes(s,K,r,T,sigma).put);
+  const intrinsicCall = S_range.map(s => Math.max(s-K,0));
+  const intrinsicPut  = S_range.map(s => Math.max(K-s,0));
+  const allVals = [...callVals,...putVals,...intrinsicCall,...intrinsicPut];
+  const maxV = Math.max(...allVals), minV = 0;
+  function mapX(v) { return pad + (v-S_range[0])/(S_range[S_range.length-1]-S_range[0])*(W-2*pad); }
+  function mapY(v) { return H-pad - (v-minV)/(maxV-minV||1)*(H-2*pad); }
+
+  // Intrinsic value
+  ctx.strokeStyle = 'rgba(16,185,129,0.3)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); intrinsicCall.forEach((v,i) => { i===0?ctx.moveTo(mapX(S_range[i]),mapY(v)):ctx.lineTo(mapX(S_range[i]),mapY(v)); }); ctx.stroke();
+  ctx.beginPath(); intrinsicPut.forEach((v,i) => { i===0?ctx.moveTo(mapX(S_range[i]),mapY(v)):ctx.lineTo(mapX(S_range[i]),mapY(v)); }); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Call
+  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2;
+  ctx.beginPath(); callVals.forEach((v,i) => { i===0?ctx.moveTo(mapX(S_range[i]),mapY(v)):ctx.lineTo(mapX(S_range[i]),mapY(v)); }); ctx.stroke();
+  // Put
+  ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2;
+  ctx.beginPath(); putVals.forEach((v,i) => { i===0?ctx.moveTo(mapX(S_range[i]),mapY(v)):ctx.lineTo(mapX(S_range[i]),mapY(v)); }); ctx.stroke();
+
+  // Current S line
+  ctx.strokeStyle = 'rgba(245,158,11,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  const cx = mapX(S);
+  ctx.beginPath(); ctx.moveTo(cx,pad); ctx.lineTo(cx,H-pad); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = '#10b981'; ctx.fillText('Call', pad, pad-8);
+  ctx.fillStyle = '#f43f5e'; ctx.fillText('Put', pad+40, pad-8);
+  ctx.fillStyle = '#94a3b8'; ctx.fillText('Option Price ($)', W/2-40, H-8);
+}
+
+// ============================================================
+// MARKET SIMULATOR
+// ============================================================
+function runSim() {
+  const model = document.getElementById('sim-model').value;
+  const sigma = parseFloat(document.getElementById('sim-sigma').value);
+  const drift = parseFloat(document.getElementById('sim-drift').value);
+  const alpha = parseFloat(document.getElementById('sim-alpha').value);
+  const N = 500;
+  let price = 100, prices = [100], returns = [];
+
+  let sig2 = sigma*sigma;
+  const a1 = 0.09, b1 = 0.90, a0 = sig2*(1-a1-b1);
+
+  for (let i=0; i<N; i++) {
+    let ret;
+    switch(model) {
+      case 'gaussian': ret = drift + sigma*gaussian(); break;
+      case 'levy':
+        const lvs = levySample(alpha)*0.01;
+        ret = drift + Math.max(-0.15, Math.min(0.15, lvs)); break;
+      case 'garch':
+        const eps = gaussian();
+        ret = drift + Math.sqrt(sig2)*eps;
+        sig2 = a0 + a1*ret*ret + b1*sig2; break;
+      case 'student':
+        const df = 4;
+        const t_samp = gaussian() / Math.sqrt(chi2(df)/df);
+        ret = drift + sigma*0.8*t_samp; break;
+      case 'tlf':
+        let ls = levySample(alpha)*0.3;
+        ls = Math.max(-sigma*8, Math.min(sigma*8, ls));
+        ret = drift + sigma*0.3*ls; break;
+      default: ret = drift + sigma*gaussian();
+    }
+    returns.push(ret);
+    price *= (1+ret);
+    prices.push(price);
+  }
+
+  const finalRet = (prices[prices.length-1]/prices[0]-1)*100;
+  const realVol = Math.sqrt(returns.reduce((a,b)=>a+b*b,0)/N) * Math.sqrt(252) * 100;
+  let peak = prices[0], maxDD = 0;
+  prices.forEach(p => { peak = Math.max(peak,p); maxDD = Math.max(maxDD, (peak-p)/peak); });
+
+  document.getElementById('sim-ret').textContent = (finalRet>=0?'+':'') + finalRet.toFixed(1) + '%';
+  document.getElementById('sim-ret').style.color = finalRet >= 0 ? '#10b981' : '#f43f5e';
+  document.getElementById('sim-vol').textContent = realVol.toFixed(1) + '%';
+  document.getElementById('sim-dd').textContent = '-' + (maxDD*100).toFixed(1) + '%';
+
+  // Draw price chart
+  const rp = getCtx('sim-price'); if (!rp) return;
+  const {ctx:c1,W:w1,H:h1} = rp;
+  const pad = 30;
+  c1.fillStyle = '#0c1322'; c1.fillRect(0,0,w1,h1);
+  drawGrid(c1,w1,h1,pad);
+  const mn = Math.min(...prices), mx = Math.max(...prices);
+  function mx2(i) { return pad+(i/N)*(w1-2*pad); }
+  function my2(v) { return pad+(1-(v-mn)/(mx-mn||1))*(h1-2*pad); }
+  c1.strokeStyle = finalRet >= 0 ? '#10b981' : '#f43f5e'; c1.lineWidth = 1.5;
+  c1.beginPath(); prices.forEach((v,i)=>i===0?c1.moveTo(mx2(i),my2(v)):c1.lineTo(mx2(i),my2(v))); c1.stroke();
+  c1.fillStyle = '#64748b'; c1.font = '10px JetBrains Mono';
+  c1.fillText(model.toUpperCase() + ' Price Path', pad, pad-8);
+
+  // Draw return distribution
+  const rd = getCtx('sim-dist'); if (!rd) return;
+  const {ctx:c2,W:w2,H:h2} = rd;
+  c2.fillStyle = '#0c1322'; c2.fillRect(0,0,w2,h2);
+  drawGrid(c2,w2,h2,pad);
+  const rMin = Math.max(-0.15, Math.min(...returns)), rMax = Math.min(0.15, Math.max(...returns));
+  const nBins = 30, bw = (rMax-rMin)/nBins;
+  const bins = new Array(nBins).fill(0);
+  returns.forEach(r => { const bi=Math.floor((r-rMin)/bw); if(bi>=0&&bi<nBins) bins[bi]++; });
+  const maxB = Math.max(...bins)||1;
+  bins.forEach((b,i) => {
+    const x = pad + (i/nBins)*(w2-2*pad);
+    const bw2 = (w2-2*pad)/nBins;
+    const y = h2-pad - b/maxB*0.9*(h2-2*pad);
+    c2.fillStyle = 'rgba(245,158,11,0.6)';
+    c2.fillRect(x, y, bw2-1, h2-pad-y);
+  });
+  c2.fillStyle = '#64748b'; c2.font = '10px JetBrains Mono';
+  c2.fillText('Return Dist', pad, pad-8);
+}
+
+function chi2(df) {
+  let s = 0;
+  for (let i=0;i<df;i++) { const g = gaussian(); s+=g*g; }
+  return s;
+}
+
+// ============================================================
+// QUIZ ENGINE
+// ============================================================
+const allQuizzes = {
+  beginner: [
+    { q: "What does the 'random walk' model imply about stock price prediction?", opts: ["Prices always go up", "Past prices cannot predict future prices", "Prices follow a sine wave", "Markets are always efficient"], ans: 1, exp: "In a random walk, each step is independent of previous ones. This means the price history gives no information about future prices — consistent with the Efficient Market Hypothesis in its weak form." },
+    { q: "What is 'arbitrage'?", opts: ["Buying a stock and hoping it goes up", "Profiting from price discrepancies across markets", "A type of Lévy distribution", "The variance of stock returns"], ans: 1, exp: "Arbitrage is the purchase and sale of equivalent securities to profit from price discrepancies. When exploited, arbitrage opportunities disappear as prices adjust — this is why markets tend toward efficiency." },
+    { q: "What are 'fat tails' in a return distribution?", opts: ["The distribution is very wide", "Extreme events occur more often than Gaussian predicts", "The mean is very high", "Volatility is constant"], ans: 1, exp: "Fat tails (leptokurtosis) means large returns (crashes, rallies) happen far more frequently than a Gaussian distribution would predict. This is one of the most robust empirical facts in finance." },
+    { q: "Who first proposed modelling stock prices as a random walk?", opts: ["Black & Scholes in 1973", "Pareto in 1897", "Bachelier in 1900", "Mandelbrot in 1963"], ans: 2, exp: "Louis Bachelier's 1900 doctoral thesis 'Théorie de la spéculation' was the first mathematical treatment of stock prices as a random walk. His advisor was Poincaré. Einstein independently discovered the same mathematics 5 years later for Brownian motion of particles." },
+    { q: "What does 'volatility clustering' mean?", opts: ["All stocks have the same volatility", "Calm periods and turbulent periods tend to cluster together", "Volatility is always increasing", "Returns are perfectly Gaussian"], ans: 1, exp: "Volatility clustering means that large price changes tend to be followed by large price changes (of either sign), and small changes tend to be followed by small changes. This is captured by ARCH/GARCH models and reflected in the long-range ACF of |returns|." }
+  ],
+  intermediate: [
+    { q: "What is the key difference between ARCH and GARCH models?", opts: ["GARCH uses only past returns; ARCH uses past variances", "ARCH uses only past squared returns; GARCH adds past conditional variances", "GARCH is for mean; ARCH is for variance", "They are identical"], ans: 1, exp: "ARCH(p) expresses today's conditional variance as a function of p past squared returns. GARCH(p,q) adds q additional terms using past conditional variances, making it much more parsimonious. GARCH(1,1) — with just 3 parameters — captures most of the volatility dynamics of real financial data." },
+    { q: "What does a Lévy stability index α=1 correspond to?", opts: ["Gaussian distribution", "Lorentzian (Cauchy) distribution", "Uniform distribution", "Student-t distribution"], ans: 1, exp: "When α=1 in the Lévy stable family, the distribution is the Lorentzian (Cauchy) distribution with characteristic function exp(-γ|q|). It has infinite mean and infinite variance, and is the 'borderline' case between very heavy-tailed and moderately heavy-tailed stable distributions." },
+    { q: "What is the 'truncated Lévy flight' designed to solve?", opts: ["Add fat tails to a Gaussian model", "Reconcile Lévy fat-tail scaling with the empirical observation of finite variance", "Model volatility clustering", "Price exotic options"], ans: 1, exp: "The TLF resolves the apparent contradiction: the S&P 500 shows Lévy-like non-Gaussian scaling for intermediate time scales (1-10,000 min), but empirically has finite variance (inconsistent with pure Lévy α<2). The TLF achieves this by truncating the Lévy distribution at a maximum jump size ℓ." },
+    { q: "The ACF of log-returns in financial markets typically shows:", opts: ["Strong positive autocorrelation for many lags", "Near-zero autocorrelation (consistent with EMH)", "Exact 1/f power spectrum", "Negative autocorrelation at all lags"], ans: 1, exp: "The ACF of returns is essentially zero beyond a few minutes — consistent with the Efficient Market Hypothesis. However, the ACF of |returns| (absolute returns) decays as a power law over weeks to months, showing long-range volatility memory." },
+    { q: "What does the 'inverse cubic law' state?", opts: ["Cubic root of prices is Gaussian", "The tail of the return distribution follows P(|r|>x) ~ x⁻³", "GARCH persistence equals 1/3", "Correlation decays as 1/t³"], ans: 1, exp: "Gopikrishnan et al. (1999) found empirically that P(|r|>x) ~ x⁻³ (α≈3) for returns of the 1,000 largest US stocks. This 'inverse cubic law' has been found in virtually every major market studied worldwide, suggesting it reflects a universal property of complex financial systems." }
+  ],
+  advanced: [
+    { q: "In the Lévy-Khintchine representation, what characterises all infinitely divisible distributions?", opts: ["They all have power-law tails", "Their log-characteristic function has a specific Lévy-Khintchine form", "They are all stable distributions", "They all have finite variance"], ans: 1, exp: "The Lévy-Khintchine theorem states that every infinitely divisible distribution has a characteristic function of the form exp[iμq - (σ²q²/2) + ∫(e^{iqx}-1-iqx·1_{|x|<1}) ν(dx)], where ν is the Lévy measure. This unifies Gaussian, Poisson, stable, and all other infinitely divisible processes." },
+    { q: "What does the ultrametric inequality (d(i,k) ≤ max[d(i,j),d(j,k)]) imply about portfolio structure?", opts: ["All correlations are equal", "Stocks can be arranged in a strict hierarchical (tree) structure", "The correlation matrix is singular", "Beta equals 1 for all stocks"], ans: 1, exp: "The ultrametric inequality is strictly stronger than the ordinary triangle inequality. It implies that the minimum spanning tree of the correlation distance matrix has a dendrogram (hierarchical tree) structure, naturally organising stocks into nested sectors and sub-sectors." },
+    { q: "Under GARCH(1,1), the tail of the unconditional return distribution follows P(|x|>z) ~ z⁻κ. What determines κ?", opts: ["κ = α₁ + β₁", "E{(α₁ε²+β₁)^{κ/2}} = 1", "κ = 1/(1-β₁)", "κ = 2/α₁"], ans: 1, exp: "The tail index κ of the unconditional GARCH distribution is determined by the moment condition E{(α₁ε²+β₁)^{κ/2}} = 1, where the expectation is over the innovation ε. For typical values (α₁=0.09, β₁=0.90), this gives κ≈4-6, consistent with empirical observations of cubic-to-quartic tails in financial returns." },
+    { q: "What is the key assumption of Black-Scholes that econophysics shows to be violated?", opts: ["Markets are continuous", "Log-returns follow geometric Brownian motion (Gaussian increments with constant volatility)", "Risk-free rates are positive", "Strike prices are fixed"], ans: 1, exp: "Black-Scholes assumes log-returns are Gaussian and volatility σ is constant. Econophysics shows: (1) returns have fat tails (non-Gaussian), (2) volatility is time-varying and mean-reverting (not constant), and (3) price paths are discontinuous (jumps occur). These violations create the 'volatility smile' and require stochastic volatility/jump-diffusion extensions." },
+    { q: "The Hurst exponent H for financial returns is typically found near:", opts: ["H=0 (strongly anti-persistent)", "H=0.5 (pure random walk)", "H slightly above 0.5 (weakly persistent)", "H=1 (strongly persistent)"], ans: 2, exp: "Empirical studies find H slightly above 0.5 (typically 0.52-0.57 for daily returns), suggesting weak long-range persistence. This is consistent with the observation that σ(t) ~ t^ν with ν slightly above 0.5. The deviation from 0.5 is real but small — markets are close to (but not exactly) random walks." }
+  ]
+};
+
+let currentQuizLevel = 'beginner', quizScoreVal = 0, quizTotalVal = 0;
+
+function loadQuiz(level, btn) {
+  currentQuizLevel = level;
+  if (btn) {
+    btn.parentElement.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  quizScoreVal = 0; quizTotalVal = 0;
+  document.getElementById('quiz-score').textContent = 0;
+  document.getElementById('quiz-total').textContent = 0;
+  const qs = allQuizzes[level];
+  const shuffled = [...qs].sort(()=>Math.random()-0.5).slice(0,3);
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = '';
+  shuffled.forEach((q,qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-q';
+    const opts = q.opts.map((o,i) => `<button class="quiz-opt" onclick="answerQ(this,${i},${q.ans},${qi})">${o}</button>`).join('');
+    div.innerHTML = `<p>Q${qi+1}. ${q.q}</p><div class="quiz-options">${opts}</div>
+      <div class="quiz-feedback" id="qfb-${qi}">${q.exp}</div>`;
+    container.appendChild(div);
+    quizTotalVal++;
+  });
+  document.getElementById('quiz-total').textContent = quizTotalVal;
+  state.quizAnswered += quizTotalVal;
+  updateDashboard();
+}
+
+function answerQ(btn, chosen, correct, qi) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
+  const fb = document.getElementById('qfb-' + qi);
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    quizScoreVal++;
+    fb.classList.add('show','correct-fb');
+    fb.innerHTML = 'Correct: Correct! ' + document.querySelectorAll('.quiz-q')[qi].querySelector('.quiz-feedback').textContent;
+    state.quizCorrect++;
+  } else {
+    btn.classList.add('wrong');
+    parent.querySelectorAll('.quiz-opt')[correct].classList.add('correct');
+    fb.classList.add('show','wrong-fb');
+    fb.innerHTML = 'Limitation: Not quite. ' + document.querySelectorAll('.quiz-q')[qi].querySelector('.quiz-feedback').textContent;
+  }
+  document.getElementById('quiz-score').textContent = quizScoreVal;
+  updateDashboard();
+}
+
+// ============================================================
+// GLOSSARY
+// ============================================================
+const glossaryData = [
+  { term: 'Arbitrage', cat: 'finance', def: 'Risk-free profit from exploiting price discrepancies between markets. Drives markets toward efficiency.' },
+  { term: 'Autocorrelation', cat: 'probability', def: 'Correlation of a time series with itself at different lags. Measures temporal memory in a signal.' },
+  { term: 'Attractor', cat: 'physics', def: 'A fixed point in the functional space of probability distributions toward which other distributions converge. The Gaussian is the attractor for finite-variance processes.' },
+  { term: 'ARCH', cat: 'models', def: 'Autoregressive Conditional Heteroskedasticity. Models time-varying volatility as a function of past squared returns. Invented by Engle (1982, Nobel Prize 2003).' },
+  { term: 'Basin of attraction', cat: 'probability', def: 'The set of all probability distributions that converge to a given attractor under summation. The Gaussian attractor draws all finite-variance distributions.' },
+  { term: 'Beta', cat: 'finance', def: 'Measure of a stock\'s sensitivity to market movements. Beta > 1 = amplifies market moves. Beta = 1 = moves in lockstep with market.' },
+  { term: 'Black-Scholes', cat: 'models', def: 'Options pricing formula (1973) assuming geometric Brownian motion. Earned Nobel Prize 1997. Assumes constant volatility and Gaussian returns — an approximation in real markets.' },
+  { term: 'Brownian motion', cat: 'physics', def: 'Continuous-time random walk. Variance grows linearly with time. Describes pollen movement in water (Einstein 1905) and idealised stock prices.' },
+  { term: 'Central Limit Theorem', cat: 'probability', def: 'States that the sum of independent finite-variance random variables converges to a Gaussian. Requires: independence AND finite variance.' },
+  { term: 'Characteristic function', cat: 'probability', def: 'Fourier transform of the probability density function. φ(q) = E{e^{iqX}}. Simplifies convolutions and characterises distributions uniquely.' },
+  { term: 'Correlation distance', cat: 'models', def: 'Distance metric derived from correlation: d_ij = √(2(1-ρ_ij)). Ranges from 0 (perfect correlation) to 2 (perfect anti-correlation). Satisfies metric axioms.' },
+  { term: 'GARCH', cat: 'models', def: 'Generalised ARCH. Adds past conditional variances to the ARCH equation, greatly improving parsimony. GARCH(1,1) is the workhorse model of financial volatility.' },
+  { term: 'Delta (option)', cat: 'finance', def: 'Rate of change of option price with respect to underlying stock price. Delta-hedging: holding -Δ shares per option creates a riskless portfolio.' },
+  { term: 'Efficient Market Hypothesis', cat: 'finance', def: 'States that all available information is instantly reflected in prices. Implies prices are unpredictable martingales. Strong empirical support at short horizons; challenged at long horizons.' },
+  { term: 'Fat tails', cat: 'probability', def: 'Probability distributions where extreme events occur much more frequently than a Gaussian predicts. Characterised by power-law tails P(|x|>z) ~ z^{-α}.' },
+  { term: 'GARCH persistence', cat: 'models', def: 'Sum α₁ + β₁ in GARCH(1,1). Measures how slowly volatility shocks decay. Near 1 = shocks last a long time. Empirical values: typically 0.97-0.99.' },
+  { term: 'Geometric Brownian Motion', cat: 'models', def: 'Standard model for stock prices: dS = μS dt + σS dW. Log-returns are Gaussian. Underpins Black-Scholes. Empirically inaccurate for fat tails and volatility clustering.' },
+  { term: 'Hurst exponent', cat: 'physics', def: 'H measures long-range dependence. H=0.5: random walk. H>0.5: persistent (trending). H<0.5: anti-persistent (mean-reverting). Named after hydrologist H.E. Hurst.' },
+  { term: 'Infinitely divisible', cat: 'probability', def: 'A distribution where for any n, the distribution can be written as the sum of n i.i.d. copies. Gaussian, Poisson, Gamma, and all stable distributions are infinitely divisible.' },
+  { term: 'Inverse cubic law', cat: 'models', def: 'Empirical finding that P(|r|>x) ~ x^{-α} with α≈3 for returns of major stocks worldwide. Found by Gopikrishnan et al. (1999) using 40 million records.' },
+  { term: 'Kurtosis', cat: 'probability', def: 'Fourth moment of a distribution divided by variance squared. Gaussian has kurtosis 3. Real return distributions have excess kurtosis > 0 (fat tails). Also called "leptokurtosis".' },
+  { term: 'Lévy distribution', cat: 'probability', def: 'Stable distribution with characteristic function exp(-γ|q|^α). Power-law tails P~|x|^{-(1+α)}. For α < 2: infinite variance. General class discovered by Paul Lévy (1920s).' },
+  { term: 'Lévy flight', cat: 'physics', def: 'Random walk with Lévy-distributed step sizes. Occasionally makes very large jumps. Used as a model for anomalous diffusion and foraging behaviour in biology.' },
+  { term: 'Log return', cat: 'finance', def: 'S(t) = ln Y(t+Δt) - ln Y(t). Most common variable in econophysics. Approximately equals simple return for small changes. Additive across time periods.' },
+  { term: 'Long-range correlation', cat: 'probability', def: 'Autocorrelation that decays as a power law (not exponential). Integral of ACF diverges. No characteristic time scale. Found in volatility of financial markets.' },
+  { term: 'Mantegna', cat: 'physics', def: 'Rosario Mantegna. Co-authored the foundational econophysics textbook with Stanley. Originated the truncated Lévy flight model and applied ultrametric analysis to portfolio structure.' },
+  { term: 'Martingale', cat: 'probability', def: 'Stochastic process where E{X(t+1)|X(0)...X(t)} = X(t). "Fair game" — expected value tomorrow = current value. The EMH implies stock prices are martingales.' },
+  { term: 'Minimum Spanning Tree', cat: 'models', def: 'Graph connecting N stocks with no loops, using minimum total correlation distance. Extracts the most important pairwise correlations. Reveals sector structure of markets.' },
+  { term: 'Option', cat: 'finance', def: 'Financial contract giving the RIGHT (not obligation) to buy (call) or sell (put) an asset at a specified price (strike K) on or before expiry. Value determined by Black-Scholes formula.' },
+  { term: 'Pareto', cat: 'physics', def: 'Vilfredo Pareto. Italian economist who first discovered power-law distributions in 1897 (wealth distribution). The "80-20 rule" is a special case of the Pareto distribution.' },
+  { term: 'Power law', cat: 'probability', def: 'Distribution P(x) ~ x^{-α}. No characteristic scale. Found in wealth, city sizes, earthquake magnitudes, and financial returns. α controls tail heaviness.' },
+  { term: 'Scaling', cat: 'physics', def: 'Property that a distribution at one time scale can be obtained from another by simple rescaling. Lévy stable distributions show exact scaling: P̃(S̃) = n^{1/α} P(n^{1/α} S̃).' },
+  { term: 'Stable distribution', cat: 'probability', def: 'Distribution whose functional form is preserved under addition of i.i.d. copies (just rescaled). Only Lévy stable distributions are stable. Include Gaussian (α=2) and Cauchy (α=1) as special cases.' },
+  { term: 'Stanley', cat: 'physics', def: 'H. Eugene Stanley. Co-authored the foundational econophysics textbook. Coined the term "econophysics". Pioneer in applying critical phenomena and scaling concepts to financial markets.' },
+  { term: 'Stationarity', cat: 'probability', def: 'Property that statistical properties are constant over time. Financial returns are at best asymptotically stationary — statistics are approximately constant over very long periods.' },
+  { term: 'Student-t distribution', cat: 'probability', def: 'Distribution with n degrees of freedom. Interpolates between Lorentzian (n=1) and Gaussian (n→∞). Has finite moments of order k only for k < n. Not stable.' },
+  { term: 'Truncated Lévy Flight', cat: 'models', def: 'A Lévy distribution cut off at maximum jump size ℓ. Shows Lévy-like scaling for short time horizons, converges to Gaussian for long horizons. Models S&P 500 data with α=1.40.' },
+  { term: 'Ultrametric', cat: 'physics', def: 'Metric where d(i,k) ≤ max[d(i,j),d(j,k)]. Stricter than ordinary triangle inequality. Implies hierarchical structure. Appears in spin glasses and portfolio taxonomy.' },
+  { term: 'Variance', cat: 'probability', def: 'Second moment of a distribution: σ² = E{(x-μ)²}. For Lévy stable with α<2: infinite variance. For Gaussian and TLF: finite. Key to risk measurement.' },
+  { term: 'Volatility', cat: 'finance', def: 'Standard deviation of log-returns, typically annualised. Time-varying in real markets (volatility clustering). Central parameter in Black-Scholes and GARCH models.' },
+  { term: 'Volatility clustering', cat: 'finance', def: 'Empirical observation that large price changes tend to be followed by large price changes. Formally: long-range autocorrelation in |returns|. Captured by GARCH models.' },
+];
+
+let currentGlossaryCat = 'all';
+function renderGlossary() {
+  const grid = document.getElementById('glossary-grid');
+  if (!grid || grid.children.length > 0) return;
+  glossaryData.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'glossary-item'; div.dataset.cat = item.cat; div.dataset.term = item.term.toLowerCase();
+    div.innerHTML = `<div class="glossary-term">${item.term}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--text3);margin-bottom:6px;">${item.cat}</div><div class="glossary-def">${item.def}</div>`;
+    grid.appendChild(div);
+  });
+}
+function filterGlossary(q) {
+  document.querySelectorAll('.glossary-item').forEach(item => {
+    const match = item.dataset.term.includes(q.toLowerCase()) || item.querySelector('.glossary-def').textContent.toLowerCase().includes(q.toLowerCase());
+    const catMatch = currentGlossaryCat==='all' || item.dataset.cat===currentGlossaryCat;
+    item.style.display = match && catMatch ? '' : 'none';
+  });
+}
+function filterGlossaryCat(cat, btn) {
+  currentGlossaryCat = cat;
+  document.querySelectorAll('#glossary-cats .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterGlossary(document.getElementById('glossary-search').value);
+}
+
+// ============================================================
+// FORMULA SHEET
+// ============================================================
+function renderFormulas() {
+  const fs = document.getElementById('formula-sheet');
+  if (!fs || fs.children.length > 0) return;
+  const sections = [
+    { title: 'Random Walk & CLT', items: [
+      { name: 'Position', eq: 'Sₙ = x₁ + x₂ + ... + xₙ', note: 'Sum of n i.i.d. steps' },
+      { name: 'Variance growth', eq: 'E{Sₙ²} = n·s²', note: 'Linear in n — diffusion' },
+      { name: 'Diffusion law', eq: 'σ(t) ~ √t', note: 'Standard deviation grows as √t' },
+      { name: 'CLT attractor', eq: 'P̃(S̃ₙ) → (1/√2π)·exp(-S̃²/2)', note: 'n→∞, requires finite variance' },
+      { name: 'Berry-Esséen bound', eq: '|Fₙ(S) - Φ(S)| ≤ 3ρ/(σ³√n)', note: 'ρ = E{|xᵢ|³}, speed of CLT convergence' },
+    ]},
+    { title: 'Lévy Stable Distributions', items: [
+      { name: 'Characteristic fn', eq: 'ln φ(q) = -γ|q|^α', note: 'Symmetric, zero mean form. α∈(0,2]' },
+      { name: 'Tail behaviour', eq: 'P_L(|x|) ~ Γ(1+α)sin(πα/2)/(π|x|^{1+α})', note: 'Power-law tail for large |x|' },
+      { name: 'Scaling', eq: 'P(Sₙ = 0) = Γ(1/α)/(πα(γn)^{1/α})', note: 'Probability of return to origin' },
+      { name: 'Self-similarity', eq: 'P̃(S̃ₙ) ≡ P(Sₙ)·n^{1/α},  S̃ₙ ≡ Sₙ/n^{1/α}', note: 'Rescaled distributions collapse' },
+    ]},
+    { title: 'Log Returns & Statistics', items: [
+      { name: 'Log return', eq: 'S(t) = ln Y(t+Δt) - ln Y(t)', note: 'Most common financial variable' },
+      { name: 'Simple return', eq: 'R(t) = [Y(t+Δt)-Y(t)] / Y(t)', note: 'Approx equals S(t) for small changes' },
+      { name: 'High-frequency', eq: 'S(t) ≈ R(t) ≈ C₁·Z(t) ≈ Z_D(t)', note: 'All definitions equivalent at high frequency' },
+    ]},
+    { title: 'Correlations', items: [
+      { name: 'Autocorrelation', eq: 'R(τ) = E{x(t)·x(t+τ)} / σ²', note: 'Normalised to R(0)=1' },
+      { name: 'Long-range', eq: 'R(τ) ~ τ^{η-1}, 0<η≤1', note: 'Power-law decay, no characteristic scale' },
+      { name: 'Power spectrum', eq: 'S(f) = ∫ R(τ)e^{-i2πfτ}dτ', note: 'Fourier transform of autocorrelation' },
+      { name: '1/f noise', eq: 'S(f) ~ const/|f|^η', note: '0<η<2. Found in volatility of markets.' },
+    ]},
+    { title: 'ARCH/GARCH', items: [
+      { name: 'ARCH(p)', eq: 'σ_t² = α₀ + α₁x²_{t-1} + ... + αₚx²_{t-p}', note: 'Conditional variance model' },
+      { name: 'GARCH(1,1)', eq: 'σ_t² = α₀ + α₁x²_{t-1} + β₁σ²_{t-1}', note: 'Most used model. Persistence = α₁+β₁' },
+      { name: 'GARCH return', eq: 'x_t = σ_t · ε_t,  ε_t ~ N(0,1)', note: 'Return = volatility × standardised innovation' },
+      { name: 'Stationarity', eq: 'α₁ + β₁ < 1', note: 'Required for finite unconditional variance' },
+    ]},
+    { title: 'Options & Black-Scholes', items: [
+      { name: 'BS Call', eq: 'C = S₀N(d₁) - Ke^{-rT}N(d₂)', note: 'Risk-neutral pricing formula' },
+      { name: 'd₁', eq: 'd₁ = [ln(S₀/K) + (r+σ²/2)T] / (σ√T)', note: '' },
+      { name: 'd₂', eq: 'd₂ = d₁ - σ√T', note: '' },
+      { name: 'Put-Call Parity', eq: 'C - P = S₀ - Ke^{-rT}', note: 'No-arbitrage relationship' },
+      { name: 'Delta', eq: 'Δ = N(d₁)', note: '∂C/∂S — hedge ratio' },
+    ]},
+    { title: 'Portfolio / Network', items: [
+      { name: 'Pearson correlation', eq: 'ρᵢⱼ = [〈SᵢSⱼ〉 - 〈Sᵢ〉〈Sⱼ〉] / (σᵢσⱼ)', note: '' },
+      { name: 'Correlation distance', eq: 'dᵢⱼ = √(2(1-ρᵢⱼ))', note: 'dᵢⱼ ∈ [0,√2]' },
+      { name: 'Ultrametric inequality', eq: 'd(i,k) ≤ max[d(i,j), d(j,k)]', note: 'Defines hierarchical tree structure' },
+    ]},
+  ];
+  sections.forEach(sec => {
+    const div = document.createElement('div');
+    div.className = 'formula-section';
+    div.innerHTML = `<h3>${sec.title}</h3>` +
+      sec.items.map(item => `<div class="formula-item">
+        <div><div class="formula-name">${item.name}</div></div>
+        <div><div class="formula-eq">${item.eq}</div>${item.note?`<div class="formula-note">${item.note}</div>`:''}</div>
+      </div>`).join('');
+    fs.appendChild(div);
+  });
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function updateDashboard() {
+  const pct = Math.round(state.visited.size / 15 * 100);
+  document.getElementById('total-pct').textContent = pct + '%';
+  document.getElementById('total-progress').style.width = pct + '%';
+}
+
+function renderDashboard() {
+  document.getElementById('dash-visited').textContent = state.visited.size;
+  document.getElementById('dash-quiz').textContent = state.quizAnswered;
+  const acc = state.quizAnswered > 0 ? Math.round(state.quizCorrect/state.quizAnswered*100) : 0;
+  document.getElementById('dash-correct').textContent = acc + '%';
+  document.getElementById('dash-total').textContent = Math.round(state.visited.size/15*100) + '%';
+
+  const chapters = [
+    { id:'ch1', name:'What is Econophysics?' },
+    { id:'ch2', name:'Efficient Markets & Arbitrage' },
+    { id:'ch3', name:'Random Walk & CLT' },
+    { id:'ch4', name:'Lévy Processes' },
+    { id:'ch5', name:'Scales in Financial Data' },
+    { id:'ch6', name:'Correlations & Memory' },
+    { id:'ch8', name:'Stochastic Price Models' },
+    { id:'ch10', name:'ARCH & GARCH' },
+    { id:'ch11', name:'Turbulence Analogy' },
+    { id:'ch12', name:'Portfolio Networks' },
+    { id:'ch14', name:'Options & Black-Scholes' },
+    { id:'simulator', name:'Market Simulator' },
+    { id:'quiz', name:'Quiz Center' },
+    { id:'glossary', name:'Glossary' },
+    { id:'formulas', name:'Formula Sheet' },
+  ];
+  const list = document.getElementById('chap-prog-list');
+  list.innerHTML = '';
+  chapters.forEach(ch => {
+    const pct = state.visited.has(ch.id) ? 100 : 0;
+    const div = document.createElement('div');
+    div.className = 'chap-progress-item';
+    div.innerHTML = `<div class="chap-prog-name">${ch.name}</div>
+      <div class="chap-prog-bar"><div class="chap-prog-fill" style="width:${pct}%"></div></div>
+      <div class="chap-prog-pct">${pct}%</div>`;
+    list.appendChild(div);
+  });
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+const searchIndex = [
+  { term: 'random walk', section: 'ch3', desc: 'Discrete and continuous random walks' },
+  { term: 'central limit theorem CLT', section: 'ch3', desc: 'Convergence to Gaussian' },
+  { term: 'lévy flight stable distribution', section: 'ch4', desc: 'Power-law tails, fat tails' },
+  { term: 'efficient market hypothesis EMH arbitrage', section: 'ch2', desc: 'Market efficiency and arbitrage' },
+  { term: 'ARCH GARCH volatility', section: 'ch10', desc: 'Conditional heteroskedasticity models' },
+  { term: 'black scholes options derivatives', section: 'ch14', desc: 'Options pricing formula' },
+  { term: 'correlation matrix portfolio taxonomy ultrametric', section: 'ch12', desc: 'Stock correlations and networks' },
+  { term: 'scaling power law inverse cubic', section: 'ch8', desc: 'Scaling and scaling breakdown' },
+  { term: 'turbulence intermittency cascade', section: 'ch11', desc: 'Finance-turbulence analogy' },
+  { term: 'truncated lévy flight TLF', section: 'ch8', desc: 'Reconciling fat tails with finite variance' },
+  { term: 'volatility clustering 1/f long-range memory', section: 'ch6', desc: 'Temporal correlations in returns' },
+  { term: 'bachelier mandelbrot stanley black scholes pareto', section: 'timeline', desc: 'Historical timeline' },
+  { term: 'glossary definition term', section: 'glossary', desc: 'All key terms defined' },
+  { term: 'formula equation sheet', section: 'formulas', desc: 'All key equations' },
+  { term: 'quiz test question', section: 'quiz', desc: 'Test your knowledge' },
+  { term: 'market simulator brownian lévy model', section: 'simulator', desc: 'Interactive price simulation' },
+];
+
+function doSearch(q) {
+  const results = document.getElementById('search-results');
+  if (!q.trim()) { results.style.display='none'; return; }
+  const hits = searchIndex.filter(item => item.term.toLowerCase().includes(q.toLowerCase()));
+  if (hits.length === 0) { results.style.display='none'; return; }
+  results.style.display = 'block';
+  results.innerHTML = hits.slice(0,6).map(h =>
+    `<div class="search-result" onclick="showSection('${h.section}');document.getElementById('searchInput').value='';document.getElementById('search-results').style.display='none'">
+      ${h.term.split(',')[0]} <span>${h.desc}</span>
+    </div>`
+  ).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  showSection('landing');
+  // Initialize arbitrage demo
+  document.getElementById('arb-signal').textContent = '';
+  updateArbitrage(0.5,'miami');
+});
+
+window.addEventListener('resize', () => {
+  // Redraw active visualizations
+  const active = document.querySelector('.section.active');
+  if (!active) return;
+  const id = active.id.replace('sec-','');
+  if (id==='ch3') { drawRW(); drawCLT(); }
+  if (id==='ch4') { drawLevy(); drawPowerLaw(); }
+  if (id==='ch6') { drawACF(); }
+  if (id==='ch8') { drawTLF(); }
+  if (id==='ch10') { drawGARCH(); }
+  if (id==='ch12') { drawCorrMatrix(); }
+  if (id==='ch14') { updateBS(); }
+  if (id==='simulator') { runSim(); }
+});
+</script>
+</body>
+</html>
