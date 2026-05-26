@@ -403,6 +403,7 @@ function renderPlots(plots) {
     html += `<div class="plot-card">
       <div class="plot-title">${p.title}</div>
       <img src="${p.img}" alt="${p.title}" loading="lazy"/>
+      ${p.desc ? `<div style="padding: 1rem 1.2rem; font-size: 0.88rem; color: var(--muted); border-top: 1px solid var(--border); line-height: 1.5; background: rgba(13, 30, 53, 0.4);">${p.desc}</div>` : ''}
     </div>`;
   }
   html += `</div>`;

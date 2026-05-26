@@ -393,7 +393,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
     ax.set_ylabel(f"Annualised Volatility (%)\n(rolling {roll_win}-day)"); ax.set_xlabel("Date")
     ax.set_title(f"Rolling Annualised Volatility  (window = {roll_win} days)"); ax.legend(loc="upper left")
     plt.tight_layout()
-    plots.append({"title": "① Time-Domain Analysis", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "① Time-Domain Analysis",
+        "img": _fig_to_b64(fig),
+        "desc": f"Shows the normalised price, daily log-returns, and rolling volatility of <strong>{symbol}</strong> compared to the Nifty 50 benchmark. Notice how periods of high volatility in the third panel correspond to dense clusters of large returns in the middle panel."
+    })
 
     # ── Plot 2: Return Distribution ───────────────────────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -424,7 +428,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
                 fontsize=9, color="darkred",
                 bbox=dict(boxstyle="round,pad=0.3", fc="lightyellow", ec="grey", alpha=0.8))
     plt.tight_layout()
-    plots.append({"title": "② Return Distribution & Fat Tails", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "② Return Distribution & Fat Tails",
+        "img": _fig_to_b64(fig),
+        "desc": f"The probability distribution of <strong>{symbol}</strong>'s {interval} returns. An excess kurtosis of <strong>{stats.kurtosis(stock_ret):.2f}</strong> indicates that extreme price movements (the 'tails' of the histogram) occur more frequently than a standard Gaussian bell curve (dashed line) would predict."
+    })
 
     # ── Plot 3: Q-Q Plot ──────────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -439,7 +447,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
         ax.set_title(f"{name}"); ax.set_xlabel("Theoretical Quantiles"); ax.set_ylabel("Sample Quantiles")
         ax.legend()
     plt.tight_layout()
-    plots.append({"title": "③ Q-Q Plot (Normality Test)", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "③ Q-Q Plot (Normality Test)",
+        "img": _fig_to_b64(fig),
+        "desc": f"A Quantile-Quantile plot testing if <strong>{symbol}</strong>'s returns follow a normal distribution. The points deviating from the dashed line at the top-right and bottom-left visually confirm the presence of 'fat tails' in the asset's price movements."
+    })
 
     # ── Plot 4: Power Spectrum ────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
@@ -467,7 +479,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
             transform=ax_obj.transAxes, fontsize=8.5, va="bottom",
             bbox=dict(boxstyle="round,pad=0.4", fc="lightyellow", ec="grey", alpha=0.85))
     plt.tight_layout()
-    plots.append({"title": "④ FFT Power Spectrum (Turbulence Spectrum)", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "④ FFT Power Spectrum (Turbulence Spectrum)",
+        "img": _fig_to_b64(fig),
+        "desc": f"The FFT power spectrum maps <strong>{symbol}</strong>'s price data into the frequency domain. The fitted power-law exponent (<strong>α = {-s_slope:.2f}</strong>) is compared against Kolmogorov's 5/3 (≈1.67) benchmark for fully-developed physical turbulence."
+    })
 
     # ── Plot 5: Spectrum overlay ──────────────────────────────────────────────
     fig, ax = plt.subplots(figsize=(12, 5))
@@ -487,7 +503,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
         ax.loglog(kol_x, kol_y, "k:", lw=1.5, label="Kolmogorov −5/3 guide")
     ax.set_xlabel("Frequency ω"); ax.set_ylabel("|F(ω)|²"); ax.legend(ncol=2)
     plt.tight_layout()
-    plots.append({"title": "⑤ Power Spectrum Overlay (Both Stocks)", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "⑤ Power Spectrum Overlay (Both Stocks)",
+        "img": _fig_to_b64(fig),
+        "desc": f"A direct overlay comparing the turbulent energy cascade of <strong>{symbol}</strong> (α = {-s_slope:.2f}) against the broader market index (α = {-n_slope:.2f}). Differing slopes indicate deviations in how information is processed across time scales."
+    })
 
     # ── Plot 6: Bispectrum heatmaps ───────────────────────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
@@ -511,7 +531,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
                 fontsize=9, color=tc_c, fontweight="bold",
                 bbox=dict(boxstyle="round,pad=0.4", fc=fc_c, ec="grey", alpha=0.90))
     plt.tight_layout()
-    plots.append({"title": "⑥ Bispectrum Heatmap (Phase Coupling)", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "⑥ Bispectrum Heatmap (Phase Coupling)",
+        "img": _fig_to_b64(fig),
+        "desc": f"The bispectrum reveals non-linear phase coupling between different frequency modes. <strong>{symbol}</strong> shows a phase-coupling score of <strong>{score_s:.3f}</strong>. Scores significantly above 3.0 indicate non-random structure and potential market inefficiencies."
+    })
 
     # ── Plot 7: Bispectrum cross-sections ─────────────────────────────────────
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
@@ -534,7 +558,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
                      f"Stock = solid    Nifty = dashed")
         ax.legend()
     plt.tight_layout()
-    plots.append({"title": "⑦ Bispectrum Cross-Sections", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "⑦ Bispectrum Cross-Sections",
+        "img": _fig_to_b64(fig),
+        "desc": f"Cross-sections of the bispectrum for <strong>{symbol}</strong> and Nifty 50. These 2D slices help identify specific frequency pairs where information is being non-linearly injected into the market."
+    })
 
     # ── Plot 8: Turbulence classification ─────────────────────────────────────
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -555,7 +583,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
     ax.legend(loc="upper right")
     ax.set_ylim(0, max(score_s, score_n) * 1.3 + 1)
     plt.tight_layout()
-    plots.append({"title": "⑧ Turbulence Classification", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "⑧ Turbulence Classification",
+        "img": _fig_to_b64(fig),
+        "desc": f"Final turbulence classification based on the bispectrum score. <strong>{symbol}</strong> is classified as having <strong>'{s_verdict.split('  ')[0]}'</strong> ({score_s:.3f}), while the broader market scores {score_n:.3f}."
+    })
 
     # ── Plot 9: Master Dashboard ──────────────────────────────────────────────
     fig = plt.figure(figsize=(18, 14))
@@ -610,7 +642,11 @@ def run_analysis(company: str, start: str, end: str, interval: str) -> dict:
     ax_bn.set_xlabel("ωα"); ax_bn.set_ylabel("ωβ")
     ax_bn.set_title(f"⑥ Bispectrum  Nifty 50\nScore = {score_n:.3f}  |  {n_verdict.split('  ')[0]}")
     plt.tight_layout()
-    plots.append({"title": "⑨ Master Dashboard (All-in-One)", "img": _fig_to_b64(fig)})
+    plots.append({
+        "title": "⑨ Master Dashboard (All-in-One)",
+        "img": _fig_to_b64(fig),
+        "desc": f"The complete Econophysics Master Dashboard for <strong>{symbol}</strong>, summarising price dynamics, return distributions, frequency-domain power laws, and non-linear phase coupling in a single comprehensive view."
+    })
 
     # ── Summary stats ─────────────────────────────────────────────────────────
     summary = {
